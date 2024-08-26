@@ -11,13 +11,13 @@ about creating custom themes in Emacs.
 <h2>Why?</h2><p>Apart from the fact that of course we want Emacs to look pretty the
 right theme can help to increase your productivity and optimise your
 coding workflow: in the best case a theme makes it easy to read your code and
-spot mistakes while being friendly for your eyes. 
+spot mistakes while being friendly for your eyes.
 </p>
-<h2>How?</h2><h3>Creating the theme</h3><p>Creating themes in Emacs is really easy :) 
+<h2>How?</h2><h3>Creating the theme</h3><p>Creating themes in Emacs is really easy :)
 Just type M-x customize-create-theme (for Emacs newbies: "M" means the alt key).
 You'll be asked if you want to have common faces inserted into your theme,
 that's pretty handy. Then you can choose a creative title and write a description
-for your new theme: 
+for your new theme:
 </p>
 
 <p></p>
@@ -27,8 +27,8 @@ for your new theme:
 
 <figcaption><span class="figure-number">Figure 1: </span>A screenshot of the customize theme buffer</figcaption>
 </figure>
-<p>Probably you also want to add additional faces for the modes you use, 
-you can do so with the "Insert Additional Face" option close to the 
+<p>Probably you also want to add additional faces for the modes you use,
+you can do so with the "Insert Additional Face" option close to the
 end of the buffer:
 </p>
 
@@ -41,27 +41,27 @@ end of the buffer:
 </figure>
 
 
-<p>Themes don't only contain faces but also variables, you can set them in 
+<p>Themes don't only contain faces but also variables, you can set them in
 this bufffer, too.
 </p>
 <h3>Selecting the theme</h3><p>When your outburst of creativity is over and you're done with customizing your
 theme save it by either using the "Save Theme" button or typing C-x C-s (for Emacs
-newbies: "C" means the control key). 
-The theme is saved as "your-creative-theme-name"-theme.el in the directory 
-specified by the variable custom-theme-directory. So if you haven't changed 
+newbies: "C" means the control key).
+The theme is saved as "your-creative-theme-name"-theme.el in the directory
+specified by the variable custom-theme-directory. So if you haven't changed
 that variable you'll probably find your new theme in the ~/.emacs.d/ directory.
 </p>
 
 <p>To select the eyecandy you just created as your new theme type M-x customize-themes
 or (if your prefer to use the Menu Bar) click Options-&gt;Customize Emacs-&gt;Custom Themes.
 You'll find yourself in the Custom Themes buffer where you can select one or more
-themes. 
+themes.
 </p>
 
 <p>Emacs looks for the themes displayed in this buffer in custom-theme-directory and
 etc/themes of your Emacs installation (that's where the themes that come with Emacs
-are located). If you want to add additional directories just add them to the 
-list "custom-theme-load-path" (for example sth. like (add-to-list 
+are located). If you want to add additional directories just add them to the
+list "custom-theme-load-path" (for example sth. like (add-to-list
 'custom-theme-load-path "~/.my-special-theme-dir"...).
 </p>
 
@@ -87,7 +87,7 @@ it ;)).
 <p>Note that loading a theme executes Lisp code, so make sure you know what you're loading.
 </p>
 <h2>I'm lazy</h2><p>The method described above is not that much effort ;) But if it's
-still too much effort (and I totally understand that) for you you could 
+still too much effort (and I totally understand that) for you you could
 use the Emacs Theme Creator by Martin Haesler:
 </p>
 
@@ -102,11 +102,11 @@ use the Emacs Theme Creator by Martin Haesler:
 
 <p></p>
 
-<p>And a <a href="https://emacs-theme-creator.appspot.com/">link</a> to it. 
+<p>And a <a href="https://emacs-theme-creator.appspot.com/">link</a> to it.
 </p>
 <h2>What else?</h2><p>Since themes in Emacs are simply lisp files you can also edit them directly.
 You should have a call to deftheme at the beginning of your file and provide-theme
-at the end. 
+at the end.
 The function custom-theme-set-faces contains your face settings, if you
 have custom variables you can set them in custom-theme-set-variables.
 </p>
