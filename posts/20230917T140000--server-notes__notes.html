@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" type="text/css" href="../../css/style.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" type="text/css" href="../css/style.css">
 <title>Game server interview questions</title>
 </head>
 <body><input type="checkbox" class="theme-switch" id="theme-switch"/>
-<div id="page"><div><nav class="navbar"><a href="../../index.html"> home </a><a href="../../archive.html"> stuff </a><a href="../../about.html"> about </a><a href="#"> <label for="theme-switch" class="switch-label"></label></a></nav><div id="content"><h1>游戏服务器面试题合集</h1><h2>TCP 的核心意涵是什么？</h2><p>TCP 是面向连接的可靠的传送协议。核心意涵就是面向连接与可靠，对于使用TCP socket而言我们要管理好socket的建立连接，断开连接等。同时对于业务逻辑而言TCP socket是可靠的不会丢包的，比如我发送ABCDE,这些数据包，不会出现丢包(ABDE)与乱序的情况(ACBED)。
+<div id="page"><div><nav class="navbar"><a href="../index.html"> home </a><a href="../archive.html"> stuff </a><a href="../about.html"> about </a><a href="#"> <label for="theme-switch" class="switch-label"></label></a></nav><div id="content"><h1>游戏服务器面试题合集</h1><h2>TCP 的核心意涵是什么？</h2><p>TCP 是面向连接的可靠的传送协议。核心意涵就是面向连接与可靠，对于使用TCP socket而言我们要管理好socket的建立连接，断开连接等。同时对于业务逻辑而言TCP socket是可靠的不会丢包的，比如我发送ABCDE,这些数据包，不会出现丢包(ABDE)与乱序的情况(ACBED)。
 </p>
 <h2>为什么TCP需要封包拆包协议？</h2><p>应用层发送数据的时候，每次发送会被开发人员认为是一个独立的数据包，可是在底层，由于TCP是可靠的传送协议，每次发送数据都要收到确认。所以底层有可能把应用层的两个数据包合并在一起发送，发送到另外一段的时候，可能一次收到两个应用层的数据包，而我们解析这些数据包的时候需要分成两个，所以我们在发送TCP命令包的时候要用标识能分开这两个数据包。所以就需要我们加一个封包拆包的协议。
 </p>
