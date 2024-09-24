@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" type="text/css" href="../css/style.css">
+<title>Manjaro Install</title>
+</head>
+<body><input type="checkbox" class="theme-switch" id="theme-switch"/>
+<div id="page"><div><nav class="navbar"><a href="../index.html"> home </a><a href="../archive.html"> stuff </a><a href="../about.html"> about </a><a href="#"> <label for="theme-switch" class="switch-label"></label></a></nav><div id="content"><h1>Manjaro-i3wm</h1><h2>download <kbd>manjaro-i3wm.iso</kbd></h2><p><a href="https://manjaro.org/products/download/">manjaro-download</a>
+</p>
+<h2>install iso file</h2><p>vmware or virtualbox
+</p>
+<h2>change mirror to china</h2><p>sudo pacman-mirrors -c China
+</p>
+<h2>resolve garbled codes</h2><p>sudo pacman -Sy wqy-zenhei
+</p>
+<h1>Software</h1><h2>chezmoi</h2><pre><code class="shell">sudo pacman -S chezmoi
+chezmoi init --apply donneyluck
+</code></pre>
+<h2>yay</h2><pre><code class="shell">sudo pacman -S yay
+</code></pre>
+<h2>vim</h2><pre><code class="shell">sudo pacman -S vim
+</code></pre>
+<h2>thefuck</h2><p>sudo pacman -S thefuck
+</p>
+<h2>fish</h2><p>sudo pacman -S fish
+chsh -S fish
+</p>
+<h2>oh-my-fish</h2><p>curl -L <em>//get.oh-my.fish</em> | fish
+</p>
+<h2>fisher</h2><p>sudo pacman -S fisher
+</p>
+<h2>picom</h2><p>sudo pacman -S picom
+</p>
+<h2>feh</h2><p>sudo pacman -S feh
+</p>
+<h2>alacritty</h2><p>sudo pacman -S alacritty
+</p>
+<h2>rofi</h2><p>sudo pacman -S rofi
+</p>
+<h2>clash-verge</h2><p>yay -S clash-verge-bin
+</p>
+<h2>lightdm-webkit2-greeter</h2><p>sudo pacman -S lightdm-webkit2-greeter
+</p>
+<h2>lightdm-theme</h2><p>sudo pacman -S lightdm-webkit2-theme-tty-git
+</p>
+<h2>google-chrome</h2><pre><code class="shell">yay -S google-chrome
+</code></pre>
+<p>add "export BROWSER=/usr/bin/google-chrome-stable" to .profile
+</p>
+<h2>mongodb</h2><p>yay -S mongodb-bin
+</p>
+<h2>dbeaver</h2>
+<h2>navicat</h2>
+<h1>Font</h1><pre><code class="shell">yay -S ttf-jetbrains-mono-git
+sudo pacman -S ttf-font-awesome
+</code></pre>
+<h1>Time</h1><pre><code class="shell">sync time
+sudo timedatectl set-ntp true
+</code></pre>
+<h1>Chinese Input</h1><pre><code class="shell">sudo pacman -S fcitx5 fcitx5-configtool fcitx5-qt fcitx5-gtk fcitx5-chinese-addons fcitx5-material-color
+</code></pre>
+
+<p>add to /etc/environment <br>
+GTK_IM_MODULE=fcitx<br>
+QT_IM_MODULE=fcitx<br>
+XMODIFIERS=@im=fcitx<br>
+SDL_IM_MODULE=fcitx<br>
+GLFW_IM_MODULE=ibus<br>
+</p>
+<div id="postamble">Made with Emacs :)
+<p><a href="disclaimer.html"> Disclaimer </a>
+</p></div></div></div></div></body>
+</html>
