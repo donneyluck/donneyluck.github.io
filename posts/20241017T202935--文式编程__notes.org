@@ -1,0 +1,549 @@
+#+title:      文式编程
+#+date:       [2024-10-17 Thu 20:29]
+#+filetags:   :notes:
+#+identifier: 20241017T202935
+#+description: 认识并了解什么是文式编程
+* 文式编程
+** 文学编程
+文学编程 （Literate programming） 的一些概念，上个世纪 70 年代就有人提出来了。
+
+文学编程的思想非常简单，就是将那些为了能被编译器/解释器正确识别而编写的代码打碎，然后用人类语言将它们编织到文档中，这种文档就是文学编程的源文件。这一概念第一次被完整的实现，是 Knuth 开发的 WEB 工具（此 WEB 并非现代漫天飞舞的那个 Web）。Knuth 的神作——TeX 系统便是借助 WEB 开发的。
+
+WEB 工具由 tangle 与 weave 这两个程序构成。tangle 程序从文学编程的源文件中提取复合编译器/解释器逻辑的程序代码。weave 程序将文学编程的源文件转换为 TeX 源文件，然后由 TeX 系统排版处理，生成程序文档。这种程序文档使作者能在以后的任何时间重新找到自己的思路，也能使其他程序员更容易理解程序的建构过程。
+
+在代码里写大量的注释，或者像 Doxygen 之类从具有特定注释格式的代码中产生文档的工具，这些都不算文学编程。文学编程强调的是，代码出现的顺序应该按照人的逻辑，而不是编译器的。
+** 很近的遥远
+文学编程，从未真正的被广泛应用，但是每个程序猿都曾经看到过它的影子。阅读一本讲 Linux 内核的书籍，远比阅读 Linux 内核源码容易的多。
+
+每一本讲编程技术的书籍都是以类似『文学编程』的方式写成的。我们在阅读这些书籍时，总是先关心作者说了些什么，然后再看他给出的示例代码。事实上，有本很古老但是很有名而且现在也不过时的书，它的中文译本叫《C 语言接口与实现——创建可重用软件的技术》，这本书就是基于文学编程的方式实现的，作者用的文学编程工具叫 noweb——后面我会介绍它。
+
+既然文学编程如此的美好，那么为何它一直没有被广泛应用呢？答案很简单，写书（不是那种烂书）要比写程序难得多。因此，写面向人类读者的文学程序要比写面向机器的代码难得多。[[https://www.cs.tufts.edu/~nr/noweb/][noweb]]的作者在 noweb 的源文件里说：One of my observations is that the cost of creating a high quality, well-documented literate program adds 1-3 times of amount of effort it took to create the program in the first place.
+
+大部分程序猿并不那么热爱编程，他们仅仅是将编程当作养家糊口的一种手段。采用文学编程方式干活，要比面向机器编程多付出 1 到 3 倍的努力，而薪酬却不变……太多的正常人是绝对不会这么虐待自己的。
+
+这个世界从不缺乏足够好的东西，只是缺乏足够好的人。
+** 它文学么？
+什么是文学？据说，文学是以语言文字为工具，形象化地反映客观现实、表现作家心灵世界的艺术。
+
+虽然文学编程用的都是语言文字，但是它的目标却不是形象化的反映客观现实或表现作者心灵世界的，它的目标是写出让人类与机器都能能容易的解读的『文档』。编程的本质，是让计算机执行确定的计算。计算的本质是数学意义上的。如果数学还没有变成文学，那么编程永远也无法变成文学。
+
+这一点决定了文学编程并不能用来搞文学，所以不要被它的名字所迷惑。要搞文学创作，只能热爱生活，认真思考，锤炼文字。
+** 论文式编程
+Knuth 明确提出了文学编程的概念，并付诸于实践，开发了 TeX、MetaFont 以及 MMIX 元模拟器这些大的程序，此外还出版了一本阐述文学编程的专著。文学编程对于他的重要作用，用他自己的话来说，就是：『文学编程确实是由TeX项目衍生出来的最重要的东西。它不仅让我前所未有地更快地写和维护可靠性更高的程序，而且成为我自20世纪80年代以来的最大的快乐之源——它有时实际上是不可或缺的。我做的其它一些大程序，比如 MMIX 元模拟器，用我见过的任何一种其它的方法论是无法写出来的。其复杂性让我有限的智能望而却步。没有文学编程，我的整个事业规划就会轰然倒塌。……文学编程是你更上一层楼的必要工具。』
+
+如果我们打算用文学编程的方式编程，那么必须要注意，Knuth 是计算机领域的科学家！我不是在鼓吹他的个人头衔，而是强调他的身份。科学家，是这个世界上最会写论文的一群人。他们探索未知区域，在失败中前进，认真总结自己的发现，最后以严肃的论文或专著的形式将自己的发现公布于世。TeX 对于我们来说是一个程序，但它对于 Knuth 来说是一本讲述计算机排版技术的专著。也就是说，如果想用好文学编程，那么首先你得学会如何写文章以及如何写科技文献。
+
+写一个程序与写一本专著，写一个程序模块与写一篇科技论文，它们之间是存在着对应关系的。写程序，首先要明确程序所解决的问题，然后将问题拆分为更小的问题，每个问题都用一个比较小的程序模块来解决，最后将各个模块组装起来得到程序。做科研的人，首先要明确自己要研究的主题，然后将主题分解为一些小的主题，对小的主题展开研究，每个研究成果都以论文的形式发表，最后将整个主题的相关论文整合起来形成专著。
+
+所以，我觉得文学编程，应该叫论文式编程，至少也该叫『文式编程』。如果按后者来理解，那么本文的标题应该这么读『论（文式编程）』:)
+
+如果我们像写一篇论文那样来写一个程序模块，大致的过程应该是：
+
+引言（背景）：这个程序模块要解决什么问题？要解决这个问题，有哪些现有的资源？我该如何利用这些资源来解决问题？
+方法（算法与程序）：准确描述利用现有资源解决问题的全部步骤，有序的组织程序代码。
+结果（单元测试）：验证方法是否正确。
+讨论：使用这个模块需要注意什么，它还存在哪些不足，应该怎样弥补。
+其实，我们在写每一个程序模块时，都会经历上述的思考与实现过程，我们最终所得到的是代码，这个过程中我们的那些思考活动却很少被记录下来。很多人说，我要去读 XXXX 项目的源代码，这是学习 XXXX 的最好方法。这种观点其实并不正确，因为你阅读源代码的过程，实际上就是在猜测这些代码当初是怎样写出来的。大可以放心，无论你怎么猜测，你只能得到一个很模糊的结果，因为那些原本很确切的信息已经永远的丢失了，甚至连当初写这些代码的人可能也想不起来了，他们留给你的只是一个巨大的迷宫。
+
+虽然有一些代码是自明的，但是，显然这些代码也都是非常简单的。对一个矩阵进行奇异值分解（SVD）的代码，无论怎么写，它也无法是自明的，除非你去阅读一篇阐述矩阵奇异值分解算法的论文。
+** 示例
+作为示例，我要用论文式编程的方式来写一个遗传算法的程序。这个程序的源码如下：
+#+begin_src noweb
+% -*- mode: Noweb; noweb-code-mode: python-mode -*-
+\title{Hello！遗传算法}
+\cprotect\author{garfileo\\ \verb|lyr_m2@live.cn|}
+\date{\today}
+\maketitle
+
+\tableofcontents
+\newpage
+
+\section*{引言}
+
+这篇文章讲述如何利用遗传算法解决一个二元函数的最大值求解问题。由于我对遗传算法的理解处于菜鸟级别，所以本文所讲的方法以及所写的程序不一定正确。之所以写这篇文章，是因为我已经烦透了教科书或论文里对遗传算法那么刻板的叙述，所以很想写一篇稍微轻松一点的入门文档，娱乐一下。
+
+\section{问题}
+
+这个二元函数是这样的：
+
+$$f(x,\,y)=0.5-\frac{\sin^2{\sqrt{x^2+y^2}-0.5}}{1+0.001(x^2+y^2))^2}$$
+
+要是我能够在大脑中直接生成这个函数的图像就好了，可惜我不能够，所以用 gnuplot 画了一下。
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=6cm]{f.png}
+\caption[目标函数]{待求最大值的目标函数}
+\end{figure}
+
+这个函数像是平静的池塘里丢了一颗小石子激起的波纹。我们的任务是计算它在 $x\in [-10,\,10],\;y\in [-10,\,10]$ 范围之内的最大值。
+
+这个函数有无限个极大值，但是仅有一个最大值，位于 $(0, 0)$ 点，值为 1。如果你的微积分学知识还没有遗忘，可以用数学方法求解一番。不幸的是，我已经忘光了，所以我只好用遗传算法进行求解。遗传算法的特点之一就是：{\bf 不需要求导或其他辅助知识，而只需要影响一些可以影响搜索方向的目标函数和相应的适应度函数}。所谓目标函数，就是要求解的函数，也就是上述的那个函数。至于适应度函数，下文再行介绍。
+
+\section{创建染色体}
+
+我唯一接触到生物学是在我的初中时代。就读的那个初中学校是一个落后的乡村中学，不过却拥有一个很好的教生物的老师，但是悲剧的是我在那时是一个不喜欢上课的懵懂无知的少年。现在为了理解遗传算法，我只好将『染色体』理解成一根带子，上面写着一组数据。据说这组数据记录着我们应该长成什么样子，具备什么样的天赋，可能会生什么疾病等内容。如果上帝能够将『语言程序』记录在我们的染色体中，也许我们刚生下来就可以说上百种人类语言还有火星语了。
+
+虽然我们不是上帝，但是我们也可以创造染色体，例如 $000110001100$ 或者 $000XXX00XXX0X$. 这是一件很容易的事情，而真正困难的是如何在染色体中记录信息。由于用二进制来表示染色体比较方便程序计算，所以本文选择了这种最简单的方式。
+
+现在，尝试为 $f(x, y)$ 的最大值所对应的 $x$ 和 $y$ 的值构造染色体。也就是说，要在一组二进制位中存储 $f(x, y)$ 的定义域中的数值信息。
+
+显然，函数 $f(x, y)$ 的定义域所包含的数值是无限多的，但是基于采样的办法可以得到有限集。例如，对于 $[-10,\,10]$ 这个区间，我们可以将它平均划分为 $20\times 10^6$ 个子区间，便得到精度为 8 位，小数位为 6 位的一组数值，个数为 $20\times 10^6 + 1$ 。若用一组二进制位形式的染色体来表示这个数值集合，那么我们还要考虑所用二进制位的长度。由于 $2^{24}<20\times 10^6 + 1< 2^{25}$，因此我们可以将染色体长度确定为 25 位，因为只有如此才可以让足够多的染色体表示那么多的数值，同时又不至于太浪费。虽然长度为 25 的二进制位所能表示的数值个数要多于 $20\times 10^6 + 1$，但是这并没有负面作用，相反，它可以更精确的表示区间 $[-10,\, 10]$ 中数值。
+
+现在，我们已经创建了一种 25 位长度的二进制位类型的染色体，那么对于任意一个这样的染色体，我们如何将其复原为 $[-10,\,10]$ 这个区间中的数值呢？很简单，只需要使用下面的公式：
+
+$$f(c) = -10.0 + c\cdot\frac{10.0 - (-10.0)}{2^{25} - 1}$$
+
+例 如 $0000 0000 0000 0000 0000 0000 0000 0$ 和 $1111 1111 1111 1111 1111 1111 1$ 这两个二进制数，将其化为 10 进制数，代入上式，可得 -10.0 和 10.0。这意味着长度为 25 位的二进制数总是可以通过上式转化为 $[-10,\,10]$ 区间中的数。
+
+\section{个体、种群与进化}
+
+染色体表达了某种特征，这种特征的载体，可以称为『个体』。例如，我本人就是一个『个体』，我身上载有 23 对染色体，也许我的相貌、性别、性格等因素主要取决于它们。众多个体便构成『种群』。
+
+对于本文所要解决的二元函数最大值求解问题，个体可采用上一节所构造的染色体表示，并且数量为 2 个，其含义可理解为函数 $f(x, y$) 定义域内的一个点的坐标。许多这样的个体便构成了一个种群，其含义为一个二维点集，包含于对角定点为 $(-10.0, -10.0)$ 和 $(10.0, 10.0)$ 的正方形区域。
+
+也许有这样一个种群，它所包含的个体对应的函数值会比其他个体更接近于函数 $f(x, y)$ 的理论最大值，但是它一开始的时候可能并不比其他个体优秀，它之所以优秀是因为它选择了不断的进化，每一次的进化都要尽量保留种群中的优秀个体，淘汰掉不理想的个体，并且在优秀个体之间进行染色体交叉，有些个体还可能出现变异。种群的每一次进化后，必定会产生一个最优秀的个体。种群所有世代中的那个最优个体也许就是函数 $f(x, y)$ 的最大值对应的定义域中的点。如果种群不休止的进化，它总是能够找到最好的解。但是，由于我们的时间是有限的，有可能等不及种群的最优进化结果，通常是在得到了一个看上去还不错的解时，便终止了种群的进化。
+
+那么，对于一个给定的种群，如何赋予它进化的能力呢？
+
+\begin{itemize}
+\item {\bf 选择}：对于种群的每一代个体，可以用一个适应度函数（也叫评估函数）计算个体的适应度，根据适应度可以计算出个体的生存几率。适应度较大的个体被保留的可能性也较大，反之被淘汰的可能性较大。
+\item {\bf 交叉}：在一定的概率下对两个个体的染色体进行交叉重组，从而得到两个新个体。
+\item {\bf 变异}：些个体的染色体会以一定的概率发生变化。
+\end{itemize}
+
+达尔文的进化论也许并不正确，但是它对于我们运用这种理论来计算问题并没有什么错误的影响。我们不管人类是否是由猿猴进化来的，还是由别的什么生物。那些进化论的反对者总是想用自己的理论推翻进化论，不过他们的理论却往往无法用于计算！基督徒们相信世界末日，也许只是因为上帝的时间也很有限，等不及人类进化到最优解，于是就设定了人类进化的最大世代数。
+
+\section{种群}
+
+如果你不熟悉 python 语言，那么请原谅我使用了它。我将种群声明为 python 的一个类：
+
+<<种群>>=
+class Population
+@
+
+种群的初始化过程就是 `Population` 类的初始化函数：
+
+<<种群初始化>>=
+def __init__ (self, size, chrom_size, cp, mp, gen_max):
+    self.individuals = []          # 个体集合
+    self.fitness = []              # 个体适应度集合
+    self.selector_probability = [] # 个体选择概率集合
+    self.new_individuals = []      # 新一代个体集合
+
+    self.elitist = {'chromosome':[0, 0],
+                    'fitness':0,
+                    'age':0}       # 最佳个体的信息
+
+    self.size = size # 种群所包含的个体数
+    self.chromosome_size = chrom_size # 个体的染色体长度
+    self.crossover_probability = cp   # 个体之间的交叉概率
+    self.mutation_probability = mp    # 个体之间的变异概率
+
+    self.generation_max = gen_max # 种群进化的最大世代数
+    self.age = 0                  # 种群当前所处世代
+
+    # 随机产生初始个体集，并将新一代个体、适应度、选择概率等集合以 0 值进行初始化
+    v = 2 ** self.chromosome_size - 1
+    for i in range (self.size):
+        self.individuals.append ([random.randint (0, v), random.randint (0, v)])
+        self.new_individuals.append ([0, 0])
+        self.fitness.append (0)
+        self.selector_probability.append (0)
+@
+
+代码中的 [[self]] 就是种群的实例，下文中也是如此。
+
+\section{选择}
+
+可以简单的模拟出『物竞天择』的效果：将种群的各个个体摆在一个轮盘上，然后转一下轮盘，将盘外的指针所指向的个体保留下来，然后接着转轮盘，接着选择，直至产生一组与种群原有个体数量一致的个体，这就是我们所选择的下一代。这种赌博不违法。
+
+要模拟这个轮盘赌博机制，首先需要构造个体适应度评价机制：
+
+<<物竞天择机制>>=
+def decode (self, interval, chromosome):
+    d = interval[1] - interval[0]
+    n = float (2 ** self.chromosome_size -1)
+    return (interval[0] + chromosome * d / n)
+
+def fitness_func (self, chrom1, chrom2):
+    interval = [-10.0, 10.0]
+    (x, y) = (self.decode (interval, chrom1),
+              self.decode (interval, chrom2))
+    n = lambda x, y: math.sin (math.sqrt (x*x + y*y)) ** 2 - 0.5
+    d = lambda x, y: (1 + 0.001 * (x*x + y*y)) ** 2
+    func = lambda x, y: 0.5 - n (x, y)/d (x, y)
+    return func (x, y)
+
+def evaluate (self):
+    sp = self.selector_probability
+    for i in range (self.size):
+        self.fitness[i] = self.fitness_func (self.individuals[i][0],
+                                             self.individuals[i][1])
+    ft_sum = sum (self.fitness)
+    for i in range (self.size):
+        sp[i] = self.fitness[i] / float (ft_sum)
+    for i in range (1, self.size):
+        sp[i] = sp[i] + sp[i-1]
+@
+
+[[decode]] 函数可以将染色体 [[chromosome]] 映射为区间 [[interval]] 之内的数值。[[fitness_func]] 是适应度函数，可以根据个体的两个染色体计算出该个体的适应度，这里直接采用了本文所要求解的目标函数
+
+$$f(x,\,y)=0.5-\frac{\sin^2{\sqrt{x^2+y^2}-0.5}}{1+0.001(x^2+y^2))^2}$$
+
+作为适应度函数。
+
+[[evaluate]] 函数用于评估种群中的个体集合 [[self.individuals]] 中各个个体的适应度，即将各个个体的 2 个染色体代入 [[fitness_func]] 函数，并将计算结果保存在 [[self.fitness]] 列表中，然后将 [[self.fitness]] 中的各个个体适应度除以所有个体适应度之和，得到各个个体的生存概率。为了适合轮盘赌博游戏，需要将个体的生存概率进行叠加，从而计算出各个个体的选择概率。例如有 5 个个体，根据其适应度计算的生存概率与选择概率如表 \ref{table:选择概率计算示例} 所示。
+
+\begin{table}[H]
+\centering
+\caption{选择概率的计算结果示例}
+\label{table:选择概率计算示例}
+\begin{tabular}{cccc}
+\toprule
+\bf 个体 & \bf 适应度 & \bf 生存概率 & \bf 选择概率 \\
+\midrule
+1 & 0.9042845033795694 & 0.28693981857759787 & 0.28693981857759787 \\
+2 & 0.5588628304907922 & 0.17733356990137467 & 0.46427338847897254 \\
+3 & 0.6899948769706024 & 0.21894326849291637 & 0.6832166569718889 \\
+4 & 0.3114709778723004 & 0.09883330472749545 & 0.7820499616993843 \\
+5 & 0.6868647339474463 & 0.21795003830061557 & 0.9999999999999999 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+有了这些数据，便可以构造图 \ref{fig:轮盘} 所示的轮盘赌博机了。
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=4cm]{selector.png}
+\caption{轮盘赌博机}
+\label{fig:轮盘}
+\end{figure}
+
+这样的轮盘赌博机，可用 python 代码表示为：
+
+<<物竞天择机制>>=
+def select (self):
+    (t, i) = (random.random (), 0)
+    for p in self.selector_probability:
+        if p > t:
+            break
+        i = i + 1
+    return i
+@
+
+\section{染色体交叉模拟}
+
+<<染色体交叉机制>>=
+def cross (self, chrom1, chrom2):
+    p = random.random ()
+    n = 2 ** self.chromosome_size -1
+    if chrom1 != chrom2 and p < self.crossover_probability:
+        t = random.randint (1, self.chromosome_size - 1)
+        mask = n << t
+        (r1, r2) = (chrom1 & mask, chrom2 & mask)
+        mask = n >> (self.chromosome_size - t)
+        (l1, l2) = (chrom1 & mask, chrom2 & mask)
+        (chrom1, chrom2) = (r1 + l2, r2 + l1)
+    return (chrom1, chrom2)
+@
+
+[[cross]] 函数可以将两个染色体进行交叉配对，从而生成 2 个新染色体。
+
+此处使用染色体交叉方法很简单，先生成一个随机概率 [[p]]，如果两个待交叉的染色体不同并且 [[p]] 小于种群个体之间的交叉概率 [[self.crossover_probability]]，那么就在 $[0, \text{self.chromosome\_size}]$ 中间随机选取一个位置，将两个染色体分别断为 2 截，然后彼此交换一下。例如：
+
+\begin{verbatim}
+1000 1101 1100 0010 0001 0110 1
+0001 0011 1111 1001 0010 1110 0
+\end{verbatim}
+
+\noindent 在第 10 位处交叉，结果为：
+
+\begin{verbatim}
+1000 1101 1100 0011 0010 1110 0
+0001 0011 1111 1000 0001 0110 1
+\end{verbatim}
+
+这种染色体交叉方法叫做{\bf 单点交叉}。如果不嫌麻烦，也可以使用{\bf 多点交叉}。
+
+\section{染色体变异}
+
+<<染色体变异机制>>=
+def mutate (self, chrom):
+    p = random.random ()
+    if p < self.mutation_probability:
+        t = random.randint (1, self.chromosome_size)
+        mask1 = 1 << (t - 1)
+        mask2 = chrom & mask1
+        if mask2 > 0:
+            chrom = chrom & (~mask2)
+        else:
+            chrom = chrom ^ mask1
+    return chrom
+@
+
+mutate 函数可以将一个染色体按照变异概率进行单点变异。例如：
+
+\begin{verbatim}
+1000 1101 1100 0010 0001 0110 1
+\end{verbatim}
+
+\noindent 在第 13 位发生变异，结果为：
+
+\begin{verbatim}
+1000 1101 1100 1010 0001 0110 1
+\end{verbatim}
+
+同交叉类似，也可以进行{\bf 多点变异}。
+
+\section{进化}
+
+<<进化机制>>=
+def evolve (self):
+    indvs = self.individuals
+    new_indvs = self.new_individuals
+
+    # 计算适应度及选择概率
+    self.evaluate ()
+
+    # 进化操作
+    i = 0
+    while True:
+        # 选择两个个体，进行交叉与变异，产生新的种群
+        idv1 = self.select ()
+        idv2 = self.select ()
+
+        # 交叉
+        (idv1_x, idv1_y) = (indvs[idv1][0], indvs[idv1][1])
+        (idv2_x, idv2_y) = (indvs[idv2][0], indvs[idv2][1])
+        (idv1_x, idv2_x) = self.cross (idv1_x, idv2_x)
+        (idv1_y, idv2_y) = self.cross (idv1_y, idv2_y)
+
+        # 变异
+        (idv1_x, idv1_y) = (self.mutate (idv1_x), self.mutate (idv1_y))
+        (idv2_x, idv2_y) = (self.mutate (idv2_x), self.mutate (idv2_y))
+
+        (new_indvs[i][0], new_indvs[i][1])     = (idv1_x, idv1_y)
+        (new_indvs[i+1][0], new_indvs[i+1][1]) = (idv2_x, idv2_y)
+
+        # 判断进化过程是否结束
+        i = i + 2
+        if i >= self.size:
+            break
+
+    # 更新换代
+    for i in range (self.size):
+        self.individuals[i][0] = self.new_individuals[i][0]
+        self.individuals[i][1] = self.new_individuals[i][1]
+
+@
+
+[[evolve]] 函数可以实现种群的一代进化计算，计算过程分为三个步骤：
+
+\begin{itemize}
+\item 使用 [[evaluate]] 函数评估当前种群的适应度，并计算各个体的选择概率。
+\item 对于数量为 [[self.size]] 的 [[self.individuals]] 集合，循环 $\text{self.size}/ 2$ 次，每次从 [[self.individuals]] 中选出 2 个个体，对其进行交叉和变异操作，并将计算结果保存于新的个体集合 [[self.new_individuals]] 中。
+\item 用种群进化生成的新个体集合 [[self.new_individuals]] 替换当前个体集合。
+\end{itemize}
+
+如果循环调用 [[evolve]] 函数，那么便可以产生一个种群进化的过程，如下：
+
+<<进化机制>>=
+def run (self):
+    for i in range (self.generation_max):
+        self.evolve ()
+        print (i, max (self.fitness), sum (self.fitness)/self.size,
+               min (self.fitness))
+@
+
+[[run]] 函数根据种群最大进化世代数设定了一个循环。在循环过程中，调用 [[evolve]] 函数进行种群进化计算，并输出种群的每一代的个体适应度最大值、平均值和最小值。
+
+\section{开启上帝模式}
+
+下面的代码可以启动种群进化过程：
+
+<<启动一个种群的进化过程>>=
+if __name__ == '__main__':
+    # 种群的个体数量为 50，染色体长度为 25，交叉概率为 0.8，变异概率为 0.1,进化最大世代数为 150
+    pop = Population (50, 24, 0.8, 0.1, 150)
+    pop.run ()
+@
+
+注意，因为个体交叉的需求，种群所包含的个体数量一般设为偶数。这个程序没考虑个体数量为奇数的情况。
+
+如果将以上所有出现的 python 代码依序组装在一起，假设存为 test.py 文件：
+
+<<hello-ga.py>>=
+import math, random
+
+<<种群>>:
+    <<种群初始化>>
+    <<物竞天择机制>>
+    <<染色体交叉机制>>
+    <<染色体变异机制>>
+    <<进化机制>>
+
+<<启动一个种群的进化过程>>
+@
+
+执行以下命令便可运行这个程序：
+
+\begin{verbatim}
+$ python3 test.py
+\end{verbatim}
+
+注意，这里我们使用的是 python 3。如果你的系统中只安装了 python 2，要让程序能够运行，需要在 test.py 的首行添加：
+
+\begin{verbatim}
+# -*- coding: utf-8 -*-
+\end{verbatim}
+
+然后将 [[evolve]] 函数中的 [[print]] 语句修改为：
+
+\begin{verbatim}
+print i, max (self.fitness), sum (self.fitness)/self.size, min (self.fitness)
+\end{verbatim}
+
+\section{结果}
+
+如果使用命令：
+
+\begin{verbatim}
+$ python3 hello-ga.py > test.log
+\end{verbatim}
+
+那么使用下面的 gnuplot 脚本 test.gnu 可以绘制出种群的每一代最大适应度、平均适应度和最小适应度的变化情况。
+
+\begin{verbatim}
+#!/usr/bin/gnuplot
+set term pngcairo
+set size ratio 0.75
+set output 'test.png'
+plot "test.log" using 1:2 title "max" with lines, \
+     "test.log" using 1:3 title "ave" with lines, \
+     "test.log" using 1:4 title "min" with lines
+\end{verbatim}
+
+运行这个 gnuplot 脚本，可以生成图片文件。
+
+\begin{verbatim}
+chmod +x ./test.gnu
+./test.gnu
+\end{verbatim}
+
+图 \ref{fig:第一次测试的结果} 中红色的折线表示种群每一代个体中适应度最大值的变化情况，显然，我们所得结果是比较接近 $f(x,\,y)$ 理论上的最大值 1.0。蓝色折线反映了种群每一代最差个体适应度的变动情况，它的波动幅度看上去比较剧烈。如果将变异概率设为 0.4，那么它看起来就会比较温顺一些，如图 \ref{fig:第二次测试的结果} 所示。变异概率如果设置的越大，那么蓝色折线的波动幅度便会越小。图 \ref{fig:第三次测试的结果} 显示了比较极端的情况，此时变异概率设为 1.0。
+
+在固定变异概率的条件下，可以用类似的方法观察一下交叉概率对计算结果的影响。
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=8cm]{ga-test.png}
+\caption{交叉概率为 0.8，变异概率为 0.1，种群的进化过程}
+\label{fig:第一次测试的结果}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=8cm]{ga-test-1.png}
+\caption{交叉概率为 0.8，变异概率为 0.4，种群的进化过程}
+\label{fig:第二次测试的结果}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=8cm]{ga-test-2.png}
+\caption{交叉概率为 0.8，变异概率为 1.0，种群的进化过程}
+\label{fig:第三次测试的结果}
+\end{figure}
+
+\section{讨论}
+
+研究遗传算法的人证明了几个定理。
+
+\begin{theorem}
+标准遗传算法不能收敛至全局最优解。
+\end{theorem}
+
+本程序按照标准遗传算法实现的，从上面的几幅图也可以看出来，受交叉与变异的影响，种群的每一代个体的最大适应度都有可能在不断变化。
+
+\begin{theorem}
+标准遗传算法，如果在选择之前保留当前最佳个体，最终能收敛到全局最优解。
+\end{theorem}
+
+对于本文所实现的遗传算法，只需要添加一个可以复制当前最佳个体信息的函数，即可保证全局最优解的收敛性，如下：
+
+\begin{verbatim}
+# 将该函数插入 Population 类中
+    def reproduct_elitist (self):
+        # 与当前种群进行适应度比较，更新最佳个体
+        j = 0
+        for i in range (self.size):
+            if self.elitist['fitness'] < self.fitness[i]:
+                j = i
+                self.elitist['fitness'] = self.fitness[i]
+        if (j > 0):
+            self.elitist['chromosome'][0] = self.individuals[j][0]
+            self.elitist['chromosome'][1] = self.individuals[j][1]
+            self.elitist['age'] = self.age
+\end{verbatim}
+
+然后在 [[evlove]] 函数中调用 [[reporduct_elitist]] 函数：
+
+\begin{verbatim}
+# 修改后的 evolve 函数
+    def evolve (self):
+        indvs = self.individuals
+        new_indvs = self.new_individuals
+
+        # 计算适应度及选择概率
+        self.evaluate ()
+
+        # 进化操作
+        i = 0
+        while True:
+            # 选择两个个体，进行交叉与变异，产生新的种群
+            idv1 = self.select ()
+            idv2 = self.select ()
+
+            # 交叉
+            (idv1_x, idv1_y) = (indvs[idv1][0], indvs[idv1][1])
+            (idv2_x, idv2_y) = (indvs[idv2][0], indvs[idv2][1])
+            (idv1_x, idv2_x) = self.cross (idv1_x, idv2_x)
+            (idv1_y, idv2_y) = self.cross (idv1_y, idv2_y)
+
+            # 变异
+            (idv1_x, idv1_y) = (self.mutate (idv1_x), self.mutate (idv1_y))
+            (idv2_x, idv2_y) = (self.mutate (idv2_x), self.mutate (idv2_y))
+
+            (new_indvs[i][0], new_indvs[i][1])     = (idv1_x, idv1_y)
+            (new_indvs[i+1][0], new_indvs[i+1][1]) = (idv2_x, idv2_y)
+
+            # 判断进化过程是否结束
+            i = i + 2
+            if i >= self.size:
+                break
+
+        # 最佳个体保留
+        self.reproduct_elitist ()
+
+        # 更新换代
+        for i in range (self.size):
+            self.individuals[i][0] = self.new_individuals[i][0]
+            self.individuals[i][1] = self.new_individuals[i][1]
+\end{verbatim}
+
+注意，我没有将最佳个体保存在种群的个体集合中，因为我觉得一个既不参与交叉也不参与变异的个体，是不能放在种群中的，它应当存放在历史课本里。所以，我在 [[Population]] 类中设置了一个 [[elitist]] 的成员，用以记录最佳个体对应的染色体、适应度及其出现的年代。当遗传算法结束后，这个最佳个体可作为目标函数的解。
+
+\begin{theorem}
+遗传算法所接受的参数有种群规模、适应度函数、染色体的表示、交叉概率、变异概率等，对于这些参数而言，不存在一个最佳组合，使它对于任何问题都能达到最优性能。
+\end{theorem}
+
+也就是说，成功的设计一个遗传算法的关键在于针对具体问题去选择恰当的参数。如果不利用所求解一些问题的特定知识，那么算法的性能于我们采用何种参数没有多大关系，情况可能会更糟糕。还要记住的是，对于单个问题，不存在最好的搜索算法。
+#+end_src
+** 为什么慢
+如果你看了上文中的论文式编程代码以及所生成的 hello-ga.pdf 文档，可能会受到一些启发，甚至在业余时间里也尝试使用 noweb 来写一些论文式程序。如果你真的这么做了，很快就会发现，事情并没有那么美好。
+
+因为在写『论文』的过程中，你无法及时的验证论文中的程序代码是否正确，只能等到论文式源文件中包含了程序的一个完整的子集（即提取出的代码可被编译或解释运行），然后方有机会去测试程序代码的正确性。如果你坚持一次性的将论文写完，然后再去验证其中的程序代码是否正确，那时可能已经积攒了一大堆错误了。我们不是机器，我们大脑的容错能力非常强，所以很多代码在我们看来是『正确』的，而编译器或解释器会很生气的说 no！
+
+我不认为真的有人能在论文里将程序写正确。实践论文式编程，最可行的办法是先写引言部分，然后全力以赴的去写程序、验证程序的正确性，最后再将自己所写的代码论文化。所以，这个过程总是要比非文学编程方式多耗费 1~3 倍的时间。其实，这个过程与严肃的编程过程并没有什么本质区别，我们先思考，然后写代码，最后再写程序文档。文学编程的真正意义在于，它强调了文档的重要性——文档一直是程序猿最不想写的东西，并统一了文档与代码——至少在形式上是这样。

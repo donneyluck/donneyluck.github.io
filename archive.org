@@ -1,0 +1,11 @@
+#+TITLE: stuff
+
+#+ATTR_HTML: :class archive
+#+BEGIN_DIV
+@@html:<li>@@ @@html:<span class="archive-item"><span class="archive-date">@@ [17.10.2024 20:29 CST] @@html:</span>@@ [[file:posts/20241017T202935--文式编程__notes.org][文式编程]]@@html:<div class="description">@@ 认识并了解什么是文式编程 @@html:</div>@@ @@html:<div class="filetags">@@ (notes) @@html:</div>@@ @@html:</span>@@ @@html:</li>@@
+@@html:<li>@@ @@html:<span class="archive-item"><span class="archive-date">@@ [24.09.2024 09:44 CST] @@html:</span>@@ [[file:posts/20240924T094433--gitworkflow__notes.org][GitWorkFlow]]@@html:<div class="description">@@ How to use git collaboration in daily development @@html:</div>@@ @@html:<div class="filetags">@@ (notes) @@html:</div>@@ @@html:</span>@@ @@html:</li>@@
+@@html:<li>@@ @@html:<span class="archive-item"><span class="archive-date">@@ [26.08.2024 18:02 CST] @@html:</span>@@ [[file:posts/20240826T180231--manjaro-install__notes.org][Manjaro Install]]@@html:<div class="description">@@ How to build your linux work environment from scratch @@html:</div>@@ @@html:<div class="filetags">@@ (notes) @@html:</div>@@ @@html:</span>@@ @@html:</li>@@
+@@html:<li>@@ @@html:<span class="archive-item"><span class="archive-date">@@ [26.08.2024 17:58 CST] @@html:</span>@@ [[file:posts/20230917T140000--server-notes__notes.org][Game server interview questions]]@@html:<div class="description">@@ Common server interview questions and answers collections very helpful @@html:</div>@@ @@html:<div class="filetags">@@ (notes) @@html:</div>@@ @@html:</span>@@ @@html:</li>@@
+@@html:<li>@@ @@html:<span class="archive-item"><span class="archive-date">@@ [26.08.2024 17:58 CST] @@html:</span>@@ [[file:posts/20240826T175853--emacs-themes__emacs.org][Emacs Themes]]@@html:<div class="description">@@ It's important to feel at home in your beloved editor, so this post is about creating custom themes in Emacs. @@html:</div>@@ @@html:<div class="filetags">@@ (emacs) @@html:</div>@@ @@html:</span>@@ @@html:</li>@@
+@@html:<li>@@ @@html:<span class="archive-item"><span class="archive-date">@@ [26.08.2024 17:47 CST] @@html:</span>@@ [[file:posts/20240826T174745--log-level__notes.org][LogLevel]]@@html:<div class="description">@@ Teach you how to use log levels correctly @@html:</div>@@ @@html:<div class="filetags">@@ (notes) @@html:</div>@@ @@html:</span>@@ @@html:</li>@@
+#+END_DIV
