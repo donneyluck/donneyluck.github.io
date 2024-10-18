@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" type="text/css" href="../css/style.css">
+<title>Lua 和 C 如何交互</title>
+</head>
+<body><input type="checkbox" class="theme-switch" id="theme-switch"/>
+<div id="page"><div><nav class="navbar"><a href="../index.html"> home </a><a href="../archive.html"> stuff </a><a href="../about.html"> about </a><a href="#"> <label for="theme-switch" class="switch-label"></label></a></nav><div id="content"><h1>Lua 和 C 如何交互</h1><h2>堆栈</h2><p>lua与c之间交互是通过“lua堆栈”通信的。不管是lua调用c还是c调用lua，都是通过操作lua堆栈实现的。顾名思义，lua堆栈也满足后进先出的特点，入栈/出栈都围绕栈顶进行的。与通用的栈不同的是，这个虚拟栈每个位置都对应一个索引，可以通过索引操作指定位置的数据。1代表栈底，向栈顶依次递增；-1代表栈顶，向栈底依次递减，如图。
+</p>
+
+<figure>
+<img src="../../assets/1.png" alt="lost" title="Lua堆栈结构" width="600px">
+
+<figcaption><span class="figure-number">Figure 1: </span>Lua堆栈结构</figcaption>
+</figure>
+<p></p>
+<h2>全局表</h2><p>Lua的全局表可以想象成一个map哈希表结构,比如Lua有一个变量:
+name = "hello world"
+全局表中存放了name和hello world的对应关系, 可以通过name在全局表中找到对应的hello world
+</p>
+<h2>lua中类型在c中如何表示</h2><p>要实现c和lua之间的交互，先了解下lua中基本类型与c中类型怎么对应的。lua中有八种基本类型：nil、boolean、number、string、table、function、userdata、thread，其中，userdata分轻量用户数据(lightuserdata)和完成用户数据(userdata)两种。这些类型都可以压入栈中，在c中统一用TValue结构表示，是一个{值，类型}结构。
+</p>
+
+<figure>
+<img src="../../assets/2.png" alt="lost" title="lua类型在c中如何表示" width="600px">
+
+<figcaption><span class="figure-number">Figure 1: </span>lua类型在c中如何表示</figcaption>
+</figure>
+<p>TValue-&gt;tt表示类型，类型定义在lua.h，nil为LUA_TNIL，boolean为LUA_TBOOLEAN等
+</p>
+<pre><code class="c"><span class="org-comment-delimiter">// </span><span class="org-comment">lua.h</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">LUA_TNIL</span>                <span class="org-highlight-numbers-number">0</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">LUA_TBOOLEAN</span>            <span class="org-highlight-numbers-number">1</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">LUA_TLIGHTUSERDATA</span>      <span class="org-highlight-numbers-number">2</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">LUA_TNUMBER</span>             <span class="org-highlight-numbers-number">3</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">LUA_TSTRING</span>             <span class="org-highlight-numbers-number">4</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">LUA_TTABLE</span>              <span class="org-highlight-numbers-number">5</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">LUA_TFUNCTION</span>           <span class="org-highlight-numbers-number">6</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">LUA_TUSERDATA</span>           <span class="org-highlight-numbers-number">7</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">LUA_TTHREAD</span>             <span class="org-highlight-numbers-number">8</span>
+</code></pre>
+<p>TValue-&gt;Value是个union：
+int b：只存boolean类型，注：number类型并不存在这里，b只存boolean
+lua_Number n：存放所有number类型
+void *p：存放轻量用户数据类型(lightuserdata)
+gcObject *gc：存放所有需要垃圾回收的类型，是一个指向union GCObject的指针，通过GCObject可以看到其包含string、userdata、closure、table、proto、upvalue、thread
+由此可知，nil、boolean、number、lightuserdata类型是把数据本身直接存在栈里，和lua的垃圾回收无关；而GCObject表示的类型是把数据的内存地址（即指针）存在栈里的，当生命周期结束需要垃圾回收释放内存。
+</p>
+<h2>对堆栈的基本操作</h2><p>luaL_newstate: 创建一个状态机
+lua_close: 关闭状态机
+</p>
+<pre><code class="c"><span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">stdio.h</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
+
+<span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">lua.h</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
+<span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">lauxlib.h</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
+<span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">lualib.h</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
+
+<span class="org-type">int</span> <span class="org-function-name">main</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">int</span> <span class="org-variable-name">argc</span>, <span class="org-type">char</span> *<span class="org-variable-name">argv</span><span class="org-rainbow-delimiters-depth-2">[]</span><span class="org-rainbow-delimiters-depth-1">){</span>
+    <span class="org-type">lua_State</span> *<span class="org-variable-name">L</span> = luaL_newstate<span class="org-rainbow-delimiters-depth-2">()</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#21019;&#24314;&#19968;&#20010;&#29366;&#24577;&#26426;</span>
+
+    lua_pushnil<span class="org-rainbow-delimiters-depth-2">(</span>L<span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">nil</span>
+    <span class="org-type">int</span> <span class="org-variable-name">type</span> = lua_type<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"nil type = %d\n"</span>, type<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>lua_isnil<span class="org-rainbow-delimiters-depth-3">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">){</span>
+        printf<span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"------nil-----\n"</span><span class="org-rainbow-delimiters-depth-3">)</span>;
+    <span class="org-rainbow-delimiters-depth-2">}</span>
+
+    lua_pushboolean<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">boolean</span>
+    type = lua_type<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"boolean type = %d\n"</span>, type<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>lua_isboolean<span class="org-rainbow-delimiters-depth-3">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
+        printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"--------boolean------\n"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+    lua_pushlightuserdata<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-constant">NULL</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">lightuserdata</span>
+    type = lua_type<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"lightuserdata type = %d\n"</span>, type<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>lua_islightuserdata<span class="org-rainbow-delimiters-depth-3">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
+        printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"--------lightuserdata------\n"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+    lua_pushnumber<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">10</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">number</span>
+    type = lua_type<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"number type = %d\n"</span>, type<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>lua_isnumber<span class="org-rainbow-delimiters-depth-3">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
+        printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"--------number------\n"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+    lua_pushstring<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"string"</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">string</span>
+    type = lua_type<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"string type = %d\n"</span>, type<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>lua_isstring<span class="org-rainbow-delimiters-depth-3">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
+        printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"--------string------\n"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+    lua_newtable<span class="org-rainbow-delimiters-depth-2">(</span>L<span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">table, &#21019;&#24314;&#31354;&#34920;&#65292;&#24182;&#21387;&#20837;&#26632;</span>
+    type = lua_type<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"table type = %d\n"</span>, type<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>lua_istable<span class="org-rainbow-delimiters-depth-3">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
+        printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"--------table------\n"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+    lua_newuserdata<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1024</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">userdata, &#20998;&#37197;1024&#22823;&#23567;&#30340;&#20869;&#23384;&#22359;&#65292;&#24182;&#25226;&#20869;&#23384;&#22320;&#22336;&#21387;&#20837;&#26632;</span>
+    type = lua_type<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"userdata type = %d\n"</span>, type<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>lua_isuserdata<span class="org-rainbow-delimiters-depth-3">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
+        printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"--------userdata------\n"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+    lua_pushthread<span class="org-rainbow-delimiters-depth-2">(</span>L<span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">thread, &#21019;&#24314;&#19968;&#20010;lua&#26032;&#32447;&#31243;,&#24182;&#23558;&#20854;&#21387;&#20837;&#26632;&#12290;lua&#32447;&#31243;&#19981;&#26159;OS&#32447;&#31243;</span>
+    type = lua_type<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"thread type = %d\n"</span>, type<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>lua_isthread<span class="org-rainbow-delimiters-depth-3">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span><span class="org-rainbow-delimiters-depth-2">)</span>
+        printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"--------thread------\n"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+    lua_close<span class="org-rainbow-delimiters-depth-2">(</span>L<span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#20851;&#38381;&#29366;&#24577;&#26426;</span>
+    <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</code></pre>
+<p>lua_pushXXX：push*族api向栈顶压入数据，比如lua_pushnumber压入数值，lua_pushstring压入字符串，lua_pushcclosure压入c闭包。
+lua_isXXX：is*族api判断栈里指定位置的索引是否是指定类型，比如，lua_istable(L,-1)判断栈顶位置的数据是否是表，lua_isuserdata(L,-1)判断栈顶位置的数据是否是用户数据等。
+运行结果如下，对应lua.h中的类型定义。
+</p>
+
+<figure>
+<img src="../../assets/3.png" alt="lost" title="运行结果" width="600px">
+
+<figcaption><span class="figure-number">Figure 1: </span>运行结果</figcaption>
+</figure>
+<p></p>
+<h2>c如何调用Lua的，即c作为宿主语言，Lua为附加语言。c和Lua之间是通过Lua堆栈交互的，基本流程是：把元素入栈——从栈中弹出元素——处理——把结果入栈。</h2><h3>加载运行Lua脚本</h3><p>通过luaL_newstate()创建一个状态机L，c与Lua之间交互的api的第一个参数几乎都是L，是因为可以创建多个状态机，调用api需指定在哪个状态机上操作。lua_close(L)关闭状态机。
+</p>
+<pre><code class="c"><span class="org-type">int</span> <span class="org-function-name">main</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">int</span> <span class="org-variable-name">argc</span>, <span class="org-type">char</span> *<span class="org-variable-name">argv</span><span class="org-rainbow-delimiters-depth-2">[]</span><span class="org-rainbow-delimiters-depth-1">){</span>
+    <span class="org-type">lua_State</span> *<span class="org-variable-name">L</span> = luaL_newstate<span class="org-rainbow-delimiters-depth-2">()</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#21019;&#24314;&#19968;&#20010;&#29366;&#24577;&#26426;</span>
+    luaL_openlibs<span class="org-rainbow-delimiters-depth-2">(</span>L<span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#25171;&#24320;&#25152;&#26377;lua&#26631;&#20934;&#24211;</span>
+
+    <span class="org-type">int</span> <span class="org-variable-name">ret</span> = luaL_loadfile<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"c2lua.lua"</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#21152;&#36733;&#20294;&#19981;&#36816;&#34892;lua&#33050;&#26412;</span>
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>ret != LUA_OK<span class="org-rainbow-delimiters-depth-2">){</span>
+        <span class="org-keyword">const</span> <span class="org-type">char</span> *<span class="org-variable-name">err</span> = lua_tostring<span class="org-rainbow-delimiters-depth-3">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#21152;&#36733;&#22833;&#36133;&#65292;&#20250;&#25226;&#38169;&#35823;&#20449;&#24687;&#21387;&#20837;&#26632;&#39030;</span>
+        printf<span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"-------loadfile error = %s\n"</span>, err<span class="org-rainbow-delimiters-depth-3">)</span>;
+        lua_close<span class="org-rainbow-delimiters-depth-3">(</span>L<span class="org-rainbow-delimiters-depth-3">)</span>;
+        <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>;
+    <span class="org-rainbow-delimiters-depth-2">}</span>
+
+    ret = lua_pcall<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">0</span>, <span class="org-highlight-numbers-number">0</span>, <span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#20445;&#25252;&#27169;&#24335;&#35843;&#29992;&#26632;&#39030;&#20989;&#25968;</span>
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>ret != LUA_OK<span class="org-rainbow-delimiters-depth-2">){</span>
+        <span class="org-keyword">const</span> <span class="org-type">char</span> *<span class="org-variable-name">err</span> = lua_tostring<span class="org-rainbow-delimiters-depth-3">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#21457;&#29983;&#38169;&#35823;&#65292;&#20250;&#25226;&#21807;&#19968;&#20540;(&#38169;&#35823;&#20449;&#24687;)&#21387;&#20837;&#26632;&#39030;</span>
+        printf<span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"-------pcall error = %s\n"</span>, err<span class="org-rainbow-delimiters-depth-3">)</span>;
+        lua_close<span class="org-rainbow-delimiters-depth-3">(</span>L<span class="org-rainbow-delimiters-depth-3">)</span>;
+        <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>;
+    <span class="org-rainbow-delimiters-depth-2">}</span>
+
+    lua_close<span class="org-rainbow-delimiters-depth-2">(</span>L<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</code></pre>
+<p>在c中加载运行Lua脚本的流程通常是，luaL_newstate、luaL_openlibs、luaL_loadfile、lua_pcall
+</p>
+<h3>操作Lua中全局变量</h3><p>lua_getglobal(L, name)，获取Lua脚本中命名为name的全局变量并压栈，然后c通过栈获取
+</p>
+<pre><code class="c"><span class="org-type">void</span> <span class="org-function-name">test_global</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span><span class="org-rainbow-delimiters-depth-1">){</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#35835;&#21462;&#65292;&#37325;&#32622;&#65292;&#35774;&#32622;&#20840;&#23616;&#21464;&#37327;</span>
+    lua_getglobal<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"var"</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#33719;&#21462;&#20840;&#23616;&#21464;&#37327;var&#30340;&#20540;&#24182;&#21387;&#20837;&#26632;&#39030;</span>
+    <span class="org-type">int</span> <span class="org-variable-name">var</span> = lua_tonumber<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"var = %d\n"</span>, var<span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pushnumber<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">10</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_setglobal<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"var"</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#35774;&#32622;&#20840;&#23616;&#21464;&#37327;var&#20026;&#26632;&#39030;&#20803;&#32032;&#30340;&#20540;&#65292;&#21363;10</span>
+    lua_pushstring<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"c str"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_setglobal<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"var2"</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#35774;&#32622;&#20840;&#23616;&#21464;&#37327;var2&#20026;&#26632;&#39030;&#20803;&#32032;&#30340;&#20540;&#65292;&#21363;c str</span>
+
+    lua_getglobal<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"f"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pcall<span class="org-rainbow-delimiters-depth-2">(</span>L,<span class="org-highlight-numbers-number">0</span>,<span class="org-highlight-numbers-number">0</span>,<span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</code></pre>
+<pre><code class="lua">var = <span class="org-highlight-numbers-number">5</span>
+
+<span class="org-keyword">function</span> <span class="org-function-name">f</span><span class="org-rainbow-delimiters-depth-1">()</span>
+    <span class="org-builtin">print</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-string">"global var = "</span>, var, var2<span class="org-rainbow-delimiters-depth-1">)</span>
+<span class="org-keyword">end</span>
+</code></pre>
+<h3>调用Lua中函数</h3><p>通过lua_pcall这个api在保护模式下调用一个Lua函数
+</p>
+<pre><code class="c"><span class="org-type">int</span> <span class="org-function-name">lua_pcall</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span>, <span class="org-type">int</span> <span class="org-variable-name">nargs</span>, <span class="org-type">int</span> <span class="org-variable-name">nresults</span>, <span class="org-type">int</span> <span class="org-variable-name">msgh</span><span class="org-rainbow-delimiters-depth-1">)</span>;
+</code></pre>
+<p>nargs是函数参数的个数，nresults是函数返回值的个数。
+约定：调用前需要依次把函数，nargs个参数（从左向右）压栈（此时最后一个参数在栈顶位置），然后函数和所有参数都出栈，并调用指定的Lua函数。
+如果调用过程没有发生错误，会把nresults个结果（从左向右）依次压入栈中（此时最后一个结果在栈顶位置），并返回成功LUA_OK。
+如果发生错误，lua_pcall会捕获它，把唯一返回值（错误信息）压栈，然后返回特定的错误码。此时，如果设置msgh不为0，则会指定栈上索引msgh指向的位置为错误处理函数，然后以错误信息作为参数调用该错误处理函数，最后把返回值作为错误信息压栈。
+</p>
+<pre><code class="c"><span class="org-type">void</span> <span class="org-function-name">test_function</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span><span class="org-rainbow-delimiters-depth-1">){</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#35843;&#29992;lua&#20989;&#25968;</span>
+    lua_getglobal<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"f1"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pcall<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">0</span>, <span class="org-highlight-numbers-number">0</span>, <span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#35843;&#29992;f1</span>
+    lua_getglobal<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"f2"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pushnumber<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">100</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pushnumber<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">10</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pcall<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">2</span>, <span class="org-highlight-numbers-number">2</span>, <span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#35843;&#29992;f2</span>
+    lua_getglobal<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"f3"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-type">char</span> *<span class="org-variable-name">str</span> = <span class="org-string">"c"</span>;
+    lua_pushstring<span class="org-rainbow-delimiters-depth-2">(</span>L, str<span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pcall<span class="org-rainbow-delimiters-depth-2">(</span>L,<span class="org-highlight-numbers-number">1</span>,<span class="org-highlight-numbers-number">1</span>,<span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#35843;&#29992;f3</span>
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</code></pre>
+<pre><code class="lua"><span class="org-comment-delimiter">--</span><span class="org-comment">c2lua.lua</span>
+<span class="org-keyword">function</span> <span class="org-function-name">f1</span><span class="org-rainbow-delimiters-depth-1">()</span>
+    <span class="org-builtin">print</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-string">"hello lua, I'm c!"</span><span class="org-rainbow-delimiters-depth-1">)</span>
+<span class="org-keyword">end</span>
+
+<span class="org-keyword">function</span> <span class="org-function-name">f2</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-variable-name">a</span>, <span class="org-variable-name">b</span><span class="org-rainbow-delimiters-depth-1">)</span>
+    <span class="org-keyword">return</span> a+b, a-b
+<span class="org-keyword">end</span>
+
+<span class="org-keyword">function</span> <span class="org-function-name">f3</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-variable-name">str</span><span class="org-rainbow-delimiters-depth-1">)</span>
+    <span class="org-keyword">return</span> str .. <span class="org-string">"_lua"</span>
+<span class="org-keyword">end</span>
+</code></pre>
+<h3>操作Lua中的table</h3><p>对表的操作主要有查找t[k]、赋值t[k]=v以及遍历表。
+</p>
+<pre><code class="lua"><span class="org-comment-delimiter">-- </span><span class="org-comment">c2lua.lua</span>
+t = <span class="org-rainbow-delimiters-depth-1">{</span><span class="org-highlight-numbers-number">1</span>, <span class="org-highlight-numbers-number">2</span>, <span class="org-rainbow-delimiters-depth-2">[</span><span class="org-string">"a"</span><span class="org-rainbow-delimiters-depth-2">]</span> = <span class="org-highlight-numbers-number">3</span>, <span class="org-rainbow-delimiters-depth-2">[</span><span class="org-string">"b"</span><span class="org-rainbow-delimiters-depth-2">]</span> = <span class="org-rainbow-delimiters-depth-2">{</span><span class="org-rainbow-delimiters-depth-3">[</span><span class="org-string">"c"</span><span class="org-rainbow-delimiters-depth-3">]</span> = <span class="org-string">'d'</span><span class="org-rainbow-delimiters-depth-2">}</span><span class="org-rainbow-delimiters-depth-1">}</span>
+</code></pre>
+<pre><code class="c"><span class="org-type">int</span> <span class="org-function-name">lua_getfield</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span>, <span class="org-type">int</span> <span class="org-variable-name">index</span>, <span class="org-keyword">const</span> <span class="org-type">char</span> *<span class="org-variable-name">k</span><span class="org-rainbow-delimiters-depth-1">)</span>;
+<span class="org-comment-delimiter">/* </span><span class="org-comment">&#26597;&#25214;&#65292;&#25226;t[k]&#30340;&#20540;&#21387;&#26632;&#65292;t&#20026;&#26632;&#19978;&#32034;&#24341;index&#25351;&#21521;&#30340;&#20301;&#32622;&#65292;&#36319;Lua&#19968;&#26679;&#35813;api&#21487;&#33021;&#35302;&#21457;"index"&#20107;&#20214;&#23545;&#24212;&#30340;&#20803;&#26041;&#27861;&#65292;&#31561;&#20215;&#20110;lua_pushstring(L,const char*k)&#21644;lua_gettable(L, int index)&#20004;&#27493;&#65292;&#25152;&#20197;&#36890;&#24120;&#29992;lua_getfield&#22312;&#34920;&#20013;&#26597;&#25214;&#26576;&#20010;&#20540;&#12290;</span><span class="org-comment-delimiter"> */</span>
+<span class="org-type">void</span> <span class="org-function-name">lua_setfield</span> <span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span>, <span class="org-type">int</span> <span class="org-variable-name">index</span>, <span class="org-keyword">const</span> <span class="org-type">char</span> *<span class="org-variable-name">k</span><span class="org-rainbow-delimiters-depth-1">)</span>;
+<span class="org-comment-delimiter">/* </span><span class="org-comment">&#36171;&#20540;&#65292;&#31561;&#20215;&#20110;t[k]=v&#65292;&#23558;&#26632;&#39030;&#30340;&#20540;(v)&#20986;&#26632;&#65292;&#20854;&#20013;t&#20026;&#26632;&#19978;&#32034;&#24341;index&#25351;&#21521;&#30340;&#20301;&#32622;&#65292;&#36319;Lua&#19968;&#26679;&#35813;api&#21487;&#33021;&#35302;&#21457;&#8220;newindex&#8221;&#20107;&#20214;&#23545;&#24212;&#30340;&#20803;&#26041;&#27861;&#12290;&#38656;&#20808;&#35843;&#29992;lua_pushxxx(L,v)&#23558;v&#20837;&#26632;&#65292;&#20877;&#35843;&#29992;lua_setfield&#36171;&#20540;&#12290;</span><span class="org-comment-delimiter"> */</span>
+
+<span class="org-type">void</span> <span class="org-function-name">dump_table</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span>, <span class="org-type">int</span> <span class="org-variable-name">index</span><span class="org-rainbow-delimiters-depth-1">){</span>
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>lua_type<span class="org-rainbow-delimiters-depth-3">(</span>L, index<span class="org-rainbow-delimiters-depth-3">)</span>!=LUA_TTABLE<span class="org-rainbow-delimiters-depth-2">)</span>
+        <span class="org-keyword">return</span>;
+    <span class="org-comment-delimiter">// </span><span class="org-comment">&#20856;&#22411;&#30340;&#36941;&#21382;&#26041;&#27861;</span>
+    lua_pushnil<span class="org-rainbow-delimiters-depth-2">(</span>L<span class="org-rainbow-delimiters-depth-2">)</span>;  <span class="org-comment-delimiter">//</span><span class="org-comment">nil&#20837;&#26632;&#65292;&#30456;&#24403;&#20110;&#20174;&#34920;&#30340;&#31532;&#19968;&#20010;&#20301;&#32622;&#36941;&#21382;</span>
+    <span class="org-keyword">while</span><span class="org-rainbow-delimiters-depth-2">(</span>lua_next<span class="org-rainbow-delimiters-depth-3">(</span>L, index<span class="org-rainbow-delimiters-depth-3">)</span>!=<span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-2">){</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#27809;&#26377;&#26356;&#22810;&#20803;&#32032;&#65292;lua_next&#36820;&#22238;0</span>
+        <span class="org-comment-delimiter">//</span><span class="org-comment">key-value&#20837;&#26632;&#65292; key&#20301;&#20110;&#26632;&#19978;-2&#22788;&#65292;value&#20301;&#20110;-1&#22788;</span>
+        printf<span class="org-rainbow-delimiters-depth-3">(</span><span class="org-string">"%s-%s\n"</span>, lua_typename<span class="org-rainbow-delimiters-depth-4">(</span>L,lua_type<span class="org-rainbow-delimiters-depth-5">(</span>L,-<span class="org-highlight-numbers-number">2</span><span class="org-rainbow-delimiters-depth-5">)</span><span class="org-rainbow-delimiters-depth-4">)</span>, lua_typename<span class="org-rainbow-delimiters-depth-4">(</span>L,lua_type<span class="org-rainbow-delimiters-depth-5">(</span>L,-<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-5">)</span><span class="org-rainbow-delimiters-depth-4">)</span><span class="org-rainbow-delimiters-depth-3">)</span>;
+        lua_pop<span class="org-rainbow-delimiters-depth-3">(</span>L,<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-3">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#24377;&#20986;&#19968;&#20010;&#20803;&#32032;&#65292;&#21363;&#25226;value&#20986;&#26632;&#65292;&#27492;&#26102;&#26632;&#39030;&#20026;key&#65292;&#20379;&#19979;&#19968;&#27425;&#36941;&#21382;</span>
+    <span class="org-rainbow-delimiters-depth-2">}</span>
+<span class="org-rainbow-delimiters-depth-1">}</span>
+
+<span class="org-type">void</span> <span class="org-function-name">test_table</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span><span class="org-rainbow-delimiters-depth-1">){</span>
+    <span class="org-comment-delimiter">// </span><span class="org-comment">&#35835;&#21462;table</span>
+    lua_getglobal<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"t"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_getfield<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1</span>, <span class="org-string">"a"</span><span class="org-rainbow-delimiters-depth-2">)</span>;  <span class="org-comment-delimiter">//</span><span class="org-comment">&#20174;&#32034;&#24341;&#20026;1&#30340;&#20301;&#32622;(table)&#33719;&#21462;t.a&#65292;&#24182;&#21387;&#26632;</span>
+    lua_getfield<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1</span>, <span class="org-string">"b"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_getfield<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span>, <span class="org-string">"c"</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#20174;&#32034;&#24341;&#20026;-1&#30340;&#20301;&#32622;(&#26632;&#39030;)&#33719;&#21462;t.c&#65292;&#24182;&#21387;&#26632;</span>
+
+    <span class="org-comment-delimiter">// </span><span class="org-comment">&#20462;&#25913;table</span>
+    lua_settop<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#35774;&#32622;&#26632;&#30340;&#20301;&#32622;&#20026;1&#65292;&#27492;&#26102;&#26632;&#19978;&#21482;&#21097;&#19968;&#20010;&#20803;&#32032;t</span>
+    lua_pushnumber<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">10</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_setfield<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1</span>, <span class="org-string">"a"</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">t.a=10</span>
+    lua_pushstring<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"hello c"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_setfield<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1</span>, <span class="org-string">"e"</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">t.e="hello c"</span>
+
+    dump_table<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#36941;&#21382;table number-number 1-1</span>
+                      <span class="org-comment-delimiter">//          </span><span class="org-comment">number-number 1-2</span>
+                      <span class="org-comment-delimiter">//          </span><span class="org-comment">string-number a-3</span>
+                      <span class="org-comment-delimiter">//          </span><span class="org-comment">string-string e-hello c</span>
+                      <span class="org-comment-delimiter">//          </span><span class="org-comment">string-table b-table</span>
+
+    <span class="org-comment-delimiter">//</span><span class="org-comment">&#26032;&#24314;&#19968;&#20010;table</span>
+    lua_settop<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#28165;&#31354;&#26632;</span>
+    lua_newtable<span class="org-rainbow-delimiters-depth-2">(</span>L<span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#21019;&#24314;&#19968;&#20010;table</span>
+    lua_pushboolean<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_setfield<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1</span>, <span class="org-string">"new_a"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pushboolean<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_setfield<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1</span>, <span class="org-string">"new_b"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+    dump_table<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#36941;&#21382;table string-boolean new_a-false</span>
+                      <span class="org-comment-delimiter">//          </span><span class="org-comment">string-boolean new_b-true</span>
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</code></pre>
+<p>注：lua_settop(L, int index)设置栈顶为index，大于index位置的元素都被移除，特别当index为0，即清空栈；如果原来的栈小于index，多余的位置用nil填充。
+总之，c调用lua的流程通常是：c把需要的数据入栈——Lua从栈中取出数据——执行Lua脚本——Lua把结果入栈——c从栈中获取结果
+</p>
+<h2>Lua是如何调用c的，Lua是宿主语言，c是附加语言。Lua调用c有几种不同方式，这里只讲解最常用的一种：将c模块编译成so库，然后供Lua调用。</h2><p>约定：c模块需提供luaopen_xxx接口，xxx与文件名必须一致，比如"mylib"；还需提供一个注册数组，该数组必须命名为luaL_Reg，每一项是{lua函数名，c函数名}，最后一项是{NULL, NULL}；通过luaL_newlib创建新的表入栈，然后将数组中的函数注册进去，这样Lua就可以调用到。
+</p>
+<pre><code class="c"><span class="org-comment-delimiter">//</span><span class="org-comment">mylib.c</span>
+
+<span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">lua.h</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
+<span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">lauxlib.h</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
+<span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">lualib.h</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
+
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">TYPE_BOOLEAN</span> <span class="org-highlight-numbers-number">1</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">TYPE_NUMBER</span> <span class="org-highlight-numbers-number">2</span>
+<span class="org-preprocessor">#define</span> <span class="org-variable-name">TYPE_STRING</span> <span class="org-highlight-numbers-number">3</span>
+
+<span class="org-keyword">static</span> <span class="org-type">int</span> <span class="org-function-name">ladd</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span><span class="org-rainbow-delimiters-depth-1">){</span>
+    <span class="org-type">double</span> <span class="org-variable-name">op1</span> = luaL_checknumber<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">2</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-type">double</span> <span class="org-variable-name">op2</span> = luaL_checknumber<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pushnumber<span class="org-rainbow-delimiters-depth-2">(</span>L, op1+op2<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">1</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+
+<span class="org-keyword">static</span> <span class="org-type">int</span> <span class="org-function-name">lsub</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span><span class="org-rainbow-delimiters-depth-1">){</span>
+    <span class="org-type">double</span> <span class="org-variable-name">op1</span> = luaL_checknumber<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">2</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-type">double</span> <span class="org-variable-name">op2</span> = luaL_checknumber<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pushnumber<span class="org-rainbow-delimiters-depth-2">(</span>L, op1-op2<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">1</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+
+<span class="org-keyword">static</span> <span class="org-type">int</span> <span class="org-function-name">lavg</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span><span class="org-rainbow-delimiters-depth-1">){</span>
+    <span class="org-type">double</span> <span class="org-variable-name">avg</span> = <span class="org-highlight-numbers-number">0.0</span>;
+    <span class="org-type">int</span> <span class="org-variable-name">n</span> = lua_gettop<span class="org-rainbow-delimiters-depth-2">(</span>L<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>n==<span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-2">){</span>
+        lua_pushnumber<span class="org-rainbow-delimiters-depth-3">(</span>L,<span class="org-highlight-numbers-number">0</span><span class="org-rainbow-delimiters-depth-3">)</span>;
+        <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">1</span>;
+    <span class="org-rainbow-delimiters-depth-2">}</span>
+    <span class="org-type">int</span> <span class="org-variable-name">i</span>;
+    <span class="org-keyword">for</span><span class="org-rainbow-delimiters-depth-2">(</span>i=<span class="org-highlight-numbers-number">1</span>;i&lt;=n;i++<span class="org-rainbow-delimiters-depth-2">){</span>
+        avg += luaL_checknumber<span class="org-rainbow-delimiters-depth-3">(</span>L, i<span class="org-rainbow-delimiters-depth-3">)</span>;
+    <span class="org-rainbow-delimiters-depth-2">}</span>
+    avg = avg/n;
+    lua_pushnumber<span class="org-rainbow-delimiters-depth-2">(</span>L,avg<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">1</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+
+<span class="org-keyword">static</span> <span class="org-type">int</span> <span class="org-function-name">fn</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span><span class="org-rainbow-delimiters-depth-1">){</span>
+    <span class="org-type">int</span> <span class="org-variable-name">type</span> = lua_type<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    printf<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"type = %d\n"</span>, type<span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>type==LUA_TBOOLEAN<span class="org-rainbow-delimiters-depth-2">){</span>
+        lua_pushvalue<span class="org-rainbow-delimiters-depth-3">(</span>L, lua_upvalueindex<span class="org-rainbow-delimiters-depth-4">(</span>TYPE_BOOLEAN<span class="org-rainbow-delimiters-depth-4">)</span><span class="org-rainbow-delimiters-depth-3">)</span>;
+    <span class="org-rainbow-delimiters-depth-2">}</span> <span class="org-keyword">else</span> <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>type==LUA_TNUMBER<span class="org-rainbow-delimiters-depth-2">){</span>
+        lua_pushvalue<span class="org-rainbow-delimiters-depth-3">(</span>L, lua_upvalueindex<span class="org-rainbow-delimiters-depth-4">(</span>TYPE_NUMBER<span class="org-rainbow-delimiters-depth-4">)</span><span class="org-rainbow-delimiters-depth-3">)</span>;
+    <span class="org-rainbow-delimiters-depth-2">}</span> <span class="org-keyword">else</span> <span class="org-keyword">if</span><span class="org-rainbow-delimiters-depth-2">(</span>type==LUA_TSTRING<span class="org-rainbow-delimiters-depth-2">){</span>
+        lua_pushvalue<span class="org-rainbow-delimiters-depth-3">(</span>L, lua_upvalueindex<span class="org-rainbow-delimiters-depth-4">(</span>TYPE_STRING<span class="org-rainbow-delimiters-depth-4">)</span><span class="org-rainbow-delimiters-depth-3">)</span>;
+    <span class="org-rainbow-delimiters-depth-2">}</span>
+    <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">1</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+
+<span class="org-type">int</span> <span class="org-function-name">luaopen_mylib</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">lua_State</span> *<span class="org-variable-name">L</span><span class="org-rainbow-delimiters-depth-1">){</span>
+    <span class="org-type">luaL_Reg</span> <span class="org-variable-name">l</span><span class="org-rainbow-delimiters-depth-2">[]</span> = <span class="org-rainbow-delimiters-depth-2">{</span>
+        <span class="org-rainbow-delimiters-depth-3">{</span><span class="org-string">"add"</span>, ladd<span class="org-rainbow-delimiters-depth-3">}</span>,
+        <span class="org-rainbow-delimiters-depth-3">{</span><span class="org-string">"sub"</span>, lsub<span class="org-rainbow-delimiters-depth-3">}</span>,
+        <span class="org-rainbow-delimiters-depth-3">{</span><span class="org-string">"avg"</span>, lavg<span class="org-rainbow-delimiters-depth-3">}</span>,
+        <span class="org-rainbow-delimiters-depth-3">{</span><span class="org-constant">NULL</span>, <span class="org-constant">NULL</span><span class="org-rainbow-delimiters-depth-3">}</span>,
+    <span class="org-rainbow-delimiters-depth-2">}</span>;
+    luaL_newlib<span class="org-rainbow-delimiters-depth-2">(</span>L,l<span class="org-rainbow-delimiters-depth-2">)</span>;
+
+    lua_pushliteral<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"BOOLEAN"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pushliteral<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"NUMBER"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pushliteral<span class="org-rainbow-delimiters-depth-2">(</span>L, <span class="org-string">"STRING"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    lua_pushcclosure<span class="org-rainbow-delimiters-depth-2">(</span>L, fn, <span class="org-highlight-numbers-number">3</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+
+    lua_setfield<span class="org-rainbow-delimiters-depth-2">(</span>L, -<span class="org-highlight-numbers-number">2</span>, <span class="org-string">"fn"</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">1</span>;
+<span class="org-rainbow-delimiters-depth-1">}</span>
+</code></pre>
+<p>Lua文件里，需将so库加入cpath路径里，通过require返回栈上的表，Lua就可以调用表中注册的接口，比如，add、sub、avg等
+Lua调用c api的过程：Lua将api需要的参数入栈——c提取到参数——处理——c将结果入栈——Lua提取出结果
+</p>
+<pre><code class="lua"><span class="org-builtin">package</span>.<span class="org-builtin">cpath</span> = <span class="org-string">"./?.so"</span>
+
+<span class="org-keyword">local</span> <span class="org-variable-name">mylib</span> = <span class="org-builtin">require</span> <span class="org-string">"mylib"</span>
+
+<span class="org-keyword">local</span> <span class="org-variable-name">a</span>, <span class="org-variable-name">b</span> = <span class="org-highlight-numbers-number">3.14</span>, <span class="org-highlight-numbers-number">1.57</span>
+
+<span class="org-builtin">print</span><span class="org-rainbow-delimiters-depth-1">(</span>mylib.add<span class="org-rainbow-delimiters-depth-2">(</span>a, b<span class="org-rainbow-delimiters-depth-2">)</span>, mylib.sub<span class="org-rainbow-delimiters-depth-2">(</span>a, b<span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span>   <span class="org-comment-delimiter">-- </span><span class="org-comment">4.71. 1.57</span>
+
+<span class="org-builtin">print</span><span class="org-rainbow-delimiters-depth-1">(</span>mylib.avg<span class="org-rainbow-delimiters-depth-2">()</span><span class="org-rainbow-delimiters-depth-1">)</span>  <span class="org-comment-delimiter">-- </span><span class="org-comment">0.0</span>
+
+<span class="org-builtin">print</span><span class="org-rainbow-delimiters-depth-1">(</span>mylib.avg<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-highlight-numbers-number">1</span>,<span class="org-highlight-numbers-number">2</span>,<span class="org-highlight-numbers-number">3</span>,<span class="org-highlight-numbers-number">4</span>,<span class="org-highlight-numbers-number">5</span><span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-comment-delimiter">-- </span><span class="org-comment">3.0</span>
+
+<span class="org-builtin">print</span><span class="org-rainbow-delimiters-depth-1">(</span>mylib.fn<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-constant">true</span><span class="org-rainbow-delimiters-depth-2">)</span>, mylib.fn<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-highlight-numbers-number">10</span><span class="org-rainbow-delimiters-depth-2">)</span>, mylib.fn<span class="org-rainbow-delimiters-depth-2">(</span><span class="org-string">"abc"</span><span class="org-rainbow-delimiters-depth-2">)</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-comment-delimiter">-- </span><span class="org-comment">BOOLEAN NUMBER STRING</span>
+</code></pre>
+<p>例中还提供了简单的c闭包的使用方法，关于c闭包，提供了多个上值（upvalue）关联到函数上，这些upvalue可以理解成该函数内部的全局变量，即只能被该函数访问到，且在函数返回时不会消亡，该函数任何时候都可以访问到。
+</p>
+
+<p>void lua_pushcclosure (lua_State *L, lua_CFunction fn, int n);
+用来把一个新的c闭包压栈，fn是一个c api，n指定关联多少个upvalue，这些upvalue需要依次压栈，即栈顶位置是第n个upvalue的值，lua_pushcclosure会把这些upvalue出栈，这些upvalue的伪索引依次为1-n。
+</p>
+
+<p>int lua_upvalueindex (int i);
+获取当前运行函数第i个upvalue的值。
+</p>
+
+<p>总之，Lua调用c的流程：编写好c模块，在堆栈上建一个表，将接口注册给这个表，然后把c模块编译成so库，在Lua里require这个so库，就可以调用注册的函数了。
+</p>
+<div id="postamble">Made with Emacs :)
+<p><a href="disclaimer.html"> Disclaimer </a>
+</p></div></div></div></div></body>
+</html>
