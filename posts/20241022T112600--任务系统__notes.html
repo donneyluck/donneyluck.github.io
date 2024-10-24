@@ -2,23 +2,46 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" type="text/css" href="../css/style.css">
-<title>任务系统(未完)</title>
+<title>任务系统</title>
 </head>
 <body><input type="checkbox" class="theme-switch" id="theme-switch"/>
 <div id="page"><div><nav class="navbar"><a href="../index.html"> home </a><a href="../archive.html"> stuff </a><a href="../about.html"> about </a><a href="#"> <label for="theme-switch" class="switch-label"></label></a></nav><div id="content"><h1>任务系统</h1><p>定义: 完成一些列条件获得奖励
 直接根据任务id划分任务类型
 </p>
-<h2>主线任务</h2>
-<h2>支线任务</h2>
-<h2>章节任务</h2>
-<h2>每日任务</h2>
-<h1>类图设计</h1><p>使用mermaid设置并生成类图
+<h2>主线任务</h2><ul><li></li>
+<li>可以主动接 也可以创建账号时自动接</li>
+<li></li>
+<li>存档: 维护一个当前正在进行的主线任务ID</li>
+</ul>
+<h2>支线任务</h2><ul><li></li>
+<li>可以主动接 也可以自动接</li>
+<li></li>
+<li>存档: 维护一个已经完成支线任务的列表 以及一个全局计数器(这样任务可以追溯)</li>
+</ul>
+<h2>章节任务</h2><ul><li></li>
+<li>完成所有的本章所有任务后 接取下一章的任务</li>
+<li>存档: 维护一个已经完成章节任务的列表</li>
+</ul>
+<h2>每日任务</h2><ul><li></li>
+<li>每天登陆后接取 跨天刷新全部日常任务 也可以手动刷新(消耗)</li>
+<li>存档: 维护一个日常任务列表的存档</li>
+</ul>
+<h1>类图设计</h1><p>使用 设置并生成类图
+</p>
+
+<p><em>../assets/task.png</em>
 </p>
 
 <figure>
 <img src="../assets/task.png" alt="lost" title="任务系统类图" width="600px">
 <figcaption><span class="figure-number">Figure 1: </span>任务系统类图</figcaption>
 </figure>
+<h1>任务表格</h1><ul><li>每一个任务组对应一个任务表</li>
+<li>TaskMain.xlsm 主线任务</li>
+<li>TaskSide.xlsm 支线任务</li>
+<li>TaskChapter.xlsm 章节任务</li>
+<li>TaskDaily.xlsm 每日任务</li>
+</ul>
 <div id="postamble">Made with Emacs :)
 <p><a href="disclaimer.html"> Disclaimer </a>
 </p></div></div></div></div></body>
