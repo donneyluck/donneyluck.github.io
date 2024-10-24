@@ -8,28 +8,25 @@
 <div id="page"><div><nav class="navbar"><a href="../index.html"> home </a><a href="../archive.html"> stuff </a><a href="../about.html"> about </a><a href="#"> <label for="theme-switch" class="switch-label"></label></a></nav><div id="content"><h1>任务系统</h1><p>定义: 完成一些列条件获得奖励
 直接根据任务id划分任务类型
 </p>
-<h2>主线任务</h2><ul><li></li>
+<h2>主线任务</h2><ul><li><strong>TaskGroup1</strong></li>
 <li>可以主动接 也可以创建账号时自动接</li>
-<li></li>
+<li><strong>同一时间只能存在1个</strong></li>
 <li>存档: 维护一个当前正在进行的主线任务ID</li>
 </ul>
-<h2>支线任务</h2><ul><li></li>
+<h2>支线任务</h2><ul><li><strong>TaskGroup2</strong></li>
 <li>可以主动接 也可以自动接</li>
-<li></li>
+<li><strong>同一时间存在 1-N 个</strong></li>
 <li>存档: 维护一个已经完成支线任务的列表 以及一个全局计数器(这样任务可以追溯)</li>
 </ul>
-<h2>章节任务</h2><ul><li></li>
+<h2>章节任务</h2><ul><li><strong>TaskGroup3</strong></li>
 <li>完成所有的本章所有任务后 接取下一章的任务</li>
 <li>存档: 维护一个已经完成章节任务的列表</li>
 </ul>
-<h2>每日任务</h2><ul><li></li>
+<h2>每日任务</h2><ul><li><strong>TaskGroup4</strong></li>
 <li>每天登陆后接取 跨天刷新全部日常任务 也可以手动刷新(消耗)</li>
 <li>存档: 维护一个日常任务列表的存档</li>
 </ul>
-<h1>类图设计</h1><p>使用 设置并生成类图
-</p>
-
-<p><em>../assets/task.png</em>
+<h1>类图设计</h1><p>使用 <strong>mermaid</strong> 设置并生成类图
 </p>
 
 <figure>
