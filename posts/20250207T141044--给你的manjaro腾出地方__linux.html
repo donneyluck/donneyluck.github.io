@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" type="text/css" href="../css/style.css">
+<title>给你的manjaro腾出地方</title>
+</head>
+<body><input type="checkbox" class="theme-switch" id="theme-switch"/>
+<div id="page"><div><nav class="navbar"><a href="../index.html"> home </a><a href="../archive.html"> stuff </a><a href="../about.html"> about </a><a href="#"> <label for="theme-switch" class="switch-label"></label></a></nav><div id="content"><p>使用Arch Linux 时间长了，空间越来越少，不禁想到要清理一下空间。 我将清理的内容分成三部分，清理安装包缓存，清理孤立的软件包，以及清理日志
+</p>
+<h1>清理安装包缓存</h1><p>使用
+</p>
+<pre><code class="shell">sudo pacman -Scc
+</code></pre>
+<p>不仅会删除未安装或旧版本的包文件缓存，也会将安装着的包的包文件缓存也一并删除。这部分是最占空间的，我大概有7-8G
+</p>
+<h1>清理孤立的软件包</h1><p>使用
+</p>
+<pre><code class="shell">sudo pacman -Rns $<span class="org-rainbow-delimiters-depth-1">(</span>pacman -Qtdq<span class="org-rainbow-delimiters-depth-1">)</span>
+</code></pre>
+<p>就可以删除孤立的软件包。什么是孤立的软件包呢？比如我想要吃西餐，我需要买刀叉。刀叉即西餐的一个依赖，西餐依赖于刀叉。如果我再也不想要吃西餐了，那么已经买来的刀叉也没用了。这个刀叉即孤立的软件包。既然用不上了，那么可以删掉。我大概清理了2-3G
+</p>
+<h1>清理日志</h1><p>使用
+</p>
+<pre><code class="shell">journalctl --vacuum-size=50M
+</code></pre>
+<p>可以限制日志记录大小在50M，我使用一年没清理过，日志记录大概在2G左右。设置了固定大小为50M后，多的日志就会被删掉。
+</p>
+<div id="postamble">Made with Emacs :)
+<p><a href="disclaimer.html"> Disclaimer </a>
+</p></div></div></div></div></body>
+</html>
