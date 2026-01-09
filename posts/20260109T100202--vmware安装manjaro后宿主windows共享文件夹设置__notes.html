@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" type="text/css" href="../css/style.css">
+<title>manjaro in vmvare</title>
+</head>
+<body><input type="checkbox" class="theme-switch" id="theme-switch"/>
+<div id="page"><div><nav class="navbar"><a href="../index.html"> home </a><a href="../archive.html"> stuff </a><a href="../about.html"> about </a><a href="#"> <label for="theme-switch" class="switch-label"></label></a></nav><div id="content"><h1>安装vmware tools</h1><pre><code class="shell">sudo pacman -S open-vm-tools
+<span class="org-comment-delimiter">#</span><span class="org-comment">&#20877;&#25191;&#34892;&#19979;&#38754;&#30340;&#21629;&#20196;
+</span>
+sudo vmhgfs-fuse -o allow_other -o auto_unmount /mnt/hgfs
+<span class="org-comment-delimiter">#</span><span class="org-comment">&#23601;&#21487;&#20197;&#22312; /mnt/hgfs&#20013;&#30475;&#21040;&#20320;&#35774;&#32622;&#30340;&#20849;&#20139;&#25991;&#20214;&#22841;&#20102;.</span>
+</code></pre>
+<h1>在VMware设置 共享目录:</h1><pre><code class="shell">download c:/user/wh/Download
+
+<span class="org-comment-delimiter">#</span><span class="org-comment">&#22312;manjaro&#19978;&#21019;&#24314;&#25991;&#20214;&#22841;
+</span>sudo mkdir /mnt/hgfs
+
+<span class="org-comment-delimiter">#</span><span class="org-comment">manjaro &#40664;&#35748;&#24050;&#32463;&#23433;&#35013;&#20102;open-vm-tools
+</span><span class="org-builtin">cd</span> /usr/bin
+
+./vmhgfs-hgfsclient
+mywindows
+
+
+sudo ./vmhgfs-fuse -o allow_other -o auto_unmount .host:/
+
+: mywindows
+
+: /mnt/hgfs
+</code></pre>
+<div id="postamble">Made with Emacs :)
+<p><a href="disclaimer.html"> Disclaimer </a>
+</p></div></div></div></div></body>
+</html>

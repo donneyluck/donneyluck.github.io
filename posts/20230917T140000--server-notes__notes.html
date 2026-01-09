@@ -271,20 +271,20 @@ C# 服务器开发高性能网络库可以使用SuperSocket等。
 重新排序数列，所有元素比基准值小的摆放在基准前面，所有元素比基准值大的摆在基准的后面（相同的数可以到任一边）。在这个分区退出之后，该基准就处于数列的中间位置。这个称为分区（partition）操作；
 递归地（recursive）把小于基准值元素的子数列和大于基准值元素的子数列排序；
 </p>
-<pre><code class="c++"><span class="org-comment-delimiter">//</span><span class="org-comment">&#36882;&#24402;&#27861;</span>
-<span class="org-keyword">template</span> <span class="org-rainbow-delimiters-depth-1">&lt;</span><span class="org-keyword">typename</span> <span class="org-type">T</span><span class="org-rainbow-delimiters-depth-1">&gt;</span>
+<pre><code class="c++"><span class="org-comment-delimiter">//</span><span class="org-comment">&#36882;&#24402;&#27861;
+</span><span class="org-keyword">template</span> <span class="org-rainbow-delimiters-depth-1">&lt;</span><span class="org-keyword">typename</span> <span class="org-type">T</span><span class="org-rainbow-delimiters-depth-1">&gt;</span>
 <span class="org-type">void</span> <span class="org-function-name">quick_sort_recursive</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">T</span> <span class="org-variable-name">arr</span><span class="org-rainbow-delimiters-depth-2">[]</span>, <span class="org-type">int</span> <span class="org-variable-name">start</span>, <span class="org-type">int</span> <span class="org-variable-name">end</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-rainbow-delimiters-depth-1">{</span>
     <span class="org-keyword">if</span> <span class="org-rainbow-delimiters-depth-2">(</span>start &gt;= end<span class="org-rainbow-delimiters-depth-2">)</span>
         <span class="org-keyword">return</span>;
     <span class="org-type">T</span> <span class="org-variable-name">mid</span> = arr<span class="org-rainbow-delimiters-depth-2">[</span>end<span class="org-rainbow-delimiters-depth-2">]</span>;
     <span class="org-type">int</span> <span class="org-variable-name">left</span> = start, <span class="org-variable-name">right</span> = end - <span class="org-highlight-numbers-number">1</span>;
-    <span class="org-keyword">while</span> <span class="org-rainbow-delimiters-depth-2">(</span>left &lt; right<span class="org-rainbow-delimiters-depth-2">)</span> <span class="org-rainbow-delimiters-depth-2">{</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#22312;&#25972;&#20010;&#33539;&#22260;&#20869;&#25628;&#23547;&#27604;&#26530;&#32445;&#20803;&#20540;&#23567;&#25110;&#22823;&#30340;&#20803;&#32032;&#65292;&#28982;&#21518;&#23558;&#24038;&#20391;&#20803;&#32032;&#19982;&#21491;&#20391;&#20803;&#32032;&#20132;&#25442;</span>
-        <span class="org-keyword">while</span> <span class="org-rainbow-delimiters-depth-3">(</span>arr<span class="org-rainbow-delimiters-depth-4">[</span>left<span class="org-rainbow-delimiters-depth-4">]</span> &lt; mid &amp;&amp; left &lt; right<span class="org-rainbow-delimiters-depth-3">)</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#35797;&#22270;&#22312;&#24038;&#20391;&#25214;&#21040;&#19968;&#20010;&#27604;&#26530;&#32445;&#20803;&#26356;&#22823;&#30340;&#20803;&#32032;</span>
-            left++;
-        <span class="org-keyword">while</span> <span class="org-rainbow-delimiters-depth-3">(</span>arr<span class="org-rainbow-delimiters-depth-4">[</span>right<span class="org-rainbow-delimiters-depth-4">]</span> &gt;= mid &amp;&amp; left &lt; right<span class="org-rainbow-delimiters-depth-3">)</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#35797;&#22270;&#22312;&#21491;&#20391;&#25214;&#21040;&#19968;&#20010;&#27604;&#26530;&#32445;&#20803;&#26356;&#23567;&#30340;&#20803;&#32032;</span>
-            right--;
-        <span class="org-constant">std</span>::swap<span class="org-rainbow-delimiters-depth-3">(</span>arr<span class="org-rainbow-delimiters-depth-4">[</span>left<span class="org-rainbow-delimiters-depth-4">]</span>, arr<span class="org-rainbow-delimiters-depth-4">[</span>right<span class="org-rainbow-delimiters-depth-4">]</span><span class="org-rainbow-delimiters-depth-3">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#20132;&#25442;&#20803;&#32032;</span>
-    <span class="org-rainbow-delimiters-depth-2">}</span>
+    <span class="org-keyword">while</span> <span class="org-rainbow-delimiters-depth-2">(</span>left &lt; right<span class="org-rainbow-delimiters-depth-2">)</span> <span class="org-rainbow-delimiters-depth-2">{</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#22312;&#25972;&#20010;&#33539;&#22260;&#20869;&#25628;&#23547;&#27604;&#26530;&#32445;&#20803;&#20540;&#23567;&#25110;&#22823;&#30340;&#20803;&#32032;&#65292;&#28982;&#21518;&#23558;&#24038;&#20391;&#20803;&#32032;&#19982;&#21491;&#20391;&#20803;&#32032;&#20132;&#25442;
+</span>        <span class="org-keyword">while</span> <span class="org-rainbow-delimiters-depth-3">(</span>arr<span class="org-rainbow-delimiters-depth-4">[</span>left<span class="org-rainbow-delimiters-depth-4">]</span> &lt; mid &amp;&amp; left &lt; right<span class="org-rainbow-delimiters-depth-3">)</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#35797;&#22270;&#22312;&#24038;&#20391;&#25214;&#21040;&#19968;&#20010;&#27604;&#26530;&#32445;&#20803;&#26356;&#22823;&#30340;&#20803;&#32032;
+</span>            left++;
+        <span class="org-keyword">while</span> <span class="org-rainbow-delimiters-depth-3">(</span>arr<span class="org-rainbow-delimiters-depth-4">[</span>right<span class="org-rainbow-delimiters-depth-4">]</span> &gt;= mid &amp;&amp; left &lt; right<span class="org-rainbow-delimiters-depth-3">)</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#35797;&#22270;&#22312;&#21491;&#20391;&#25214;&#21040;&#19968;&#20010;&#27604;&#26530;&#32445;&#20803;&#26356;&#23567;&#30340;&#20803;&#32032;
+</span>            right--;
+        <span class="org-constant">std</span>::swap<span class="org-rainbow-delimiters-depth-3">(</span>arr<span class="org-rainbow-delimiters-depth-4">[</span>left<span class="org-rainbow-delimiters-depth-4">]</span>, arr<span class="org-rainbow-delimiters-depth-4">[</span>right<span class="org-rainbow-delimiters-depth-4">]</span><span class="org-rainbow-delimiters-depth-3">)</span>; <span class="org-comment-delimiter">//</span><span class="org-comment">&#20132;&#25442;&#20803;&#32032;
+</span>    <span class="org-rainbow-delimiters-depth-2">}</span>
     <span class="org-keyword">if</span> <span class="org-rainbow-delimiters-depth-2">(</span>arr<span class="org-rainbow-delimiters-depth-3">[</span>left<span class="org-rainbow-delimiters-depth-3">]</span> &gt;= arr<span class="org-rainbow-delimiters-depth-3">[</span>end<span class="org-rainbow-delimiters-depth-3">]</span><span class="org-rainbow-delimiters-depth-2">)</span>
         <span class="org-constant">std</span>::swap<span class="org-rainbow-delimiters-depth-2">(</span>arr<span class="org-rainbow-delimiters-depth-3">[</span>left<span class="org-rainbow-delimiters-depth-3">]</span>, arr<span class="org-rainbow-delimiters-depth-3">[</span>end<span class="org-rainbow-delimiters-depth-3">]</span><span class="org-rainbow-delimiters-depth-2">)</span>;
     <span class="org-keyword">else</span>
@@ -292,8 +292,8 @@ C# 服务器开发高性能网络库可以使用SuperSocket等。
     quick_sort_recursive<span class="org-rainbow-delimiters-depth-2">(</span>arr, start, left - <span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
     quick_sort_recursive<span class="org-rainbow-delimiters-depth-2">(</span>arr, left + <span class="org-highlight-numbers-number">1</span>, end<span class="org-rainbow-delimiters-depth-2">)</span>;
 <span class="org-rainbow-delimiters-depth-1">}</span>
-<span class="org-keyword">template</span> <span class="org-rainbow-delimiters-depth-1">&lt;</span><span class="org-keyword">typename</span> <span class="org-type">T</span><span class="org-rainbow-delimiters-depth-1">&gt;</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#25972;&#25976;&#25110;&#28014;&#40670;&#25976;&#30342;&#21487;&#20351;&#29992;,&#33509;&#35201;&#20351;&#29992;&#29289;&#20214;(class)&#26178;&#24517;&#38920;&#35373;&#23450;"&#23567;&#26044;"(&lt;)&#12289;"&#22823;&#26044;"(&gt;)&#12289;"&#19981;&#23567;&#26044;"(&gt;=)&#30340;&#36939;&#31639;&#23376;&#21151;&#33021;</span>
-<span class="org-type">void</span> <span class="org-function-name">quick_sort</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">T</span> <span class="org-variable-name">arr</span><span class="org-rainbow-delimiters-depth-2">[]</span>, <span class="org-type">int</span> <span class="org-variable-name">len</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-keyword">template</span> <span class="org-rainbow-delimiters-depth-1">&lt;</span><span class="org-keyword">typename</span> <span class="org-type">T</span><span class="org-rainbow-delimiters-depth-1">&gt;</span> <span class="org-comment-delimiter">//</span><span class="org-comment">&#25972;&#25976;&#25110;&#28014;&#40670;&#25976;&#30342;&#21487;&#20351;&#29992;,&#33509;&#35201;&#20351;&#29992;&#29289;&#20214;(class)&#26178;&#24517;&#38920;&#35373;&#23450;"&#23567;&#26044;"(&lt;)&#12289;"&#22823;&#26044;"(&gt;)&#12289;"&#19981;&#23567;&#26044;"(&gt;=)&#30340;&#36939;&#31639;&#23376;&#21151;&#33021;
+</span><span class="org-type">void</span> <span class="org-function-name">quick_sort</span><span class="org-rainbow-delimiters-depth-1">(</span><span class="org-type">T</span> <span class="org-variable-name">arr</span><span class="org-rainbow-delimiters-depth-2">[]</span>, <span class="org-type">int</span> <span class="org-variable-name">len</span><span class="org-rainbow-delimiters-depth-1">)</span> <span class="org-rainbow-delimiters-depth-1">{</span>
     quick_sort_recursive<span class="org-rainbow-delimiters-depth-2">(</span>arr, <span class="org-highlight-numbers-number">0</span>, len - <span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
 <span class="org-rainbow-delimiters-depth-1">}</span>
 </code></pre>
@@ -334,14 +334,14 @@ Nginx 反向代理场景中，可能出现大量短链接，服务器端，可�
 </p>
 <pre><code class="conf">vi /etc/sysctl.conf
 <span class="org-variable-name">net.ipv4.tcp_keepalive_time</span> = <span class="org-highlight-numbers-number">1200</span>
-<span class="org-comment-delimiter">#</span><span class="org-comment">&#34920;&#31034;&#24403;keepalive&#36215;&#29992;&#30340;&#26102;&#20505;&#65292;TCP&#21457;&#36865;keepalive&#28040;&#24687;&#30340;&#39057;&#24230;&#12290;&#32570;&#30465;&#26159;2&#23567;&#26102;&#65292;&#25913;&#20026;20&#20998;&#38047;&#12290;</span>
-<span class="org-variable-name">net.ipv4.ip_local_port_range</span> = <span class="org-highlight-numbers-number">1024</span> <span class="org-highlight-numbers-number">65000</span>
-<span class="org-comment-delimiter">#</span><span class="org-comment">&#34920;&#31034;&#29992;&#20110;&#21521;&#22806;&#36830;&#25509;&#30340;&#31471;&#21475;&#33539;&#22260;&#12290;&#32570;&#30465;&#24773;&#20917;&#19979;&#24456;&#23567;&#65306;32768&#21040;61000&#65292;&#25913;&#20026;1024&#21040;65000&#12290;</span>
-<span class="org-variable-name">net.ipv4.tcp_max_syn_backlog</span> = <span class="org-highlight-numbers-number">8192</span>
-<span class="org-comment-delimiter">#</span><span class="org-comment">&#34920;&#31034;SYN&#38431;&#21015;&#30340;&#38271;&#24230;&#65292;&#40664;&#35748;&#20026;1024&#65292;&#21152;&#22823;&#38431;&#21015;&#38271;&#24230;&#20026;8192&#65292;&#21487;&#20197;&#23481;&#32435;&#26356;&#22810;&#31561;&#24453;&#36830;&#25509;&#30340;&#32593;&#32476;&#36830;&#25509;&#25968;&#12290;</span>
-<span class="org-variable-name">net.ipv4.tcp_max_tw_buckets</span> = <span class="org-highlight-numbers-number">5000</span>
-<span class="org-comment-delimiter">#</span><span class="org-comment">&#34920;&#31034;&#31995;&#32479;&#21516;&#26102;&#20445;&#25345;TIME_WAIT&#22871;&#25509;&#23383;&#30340;&#26368;&#22823;&#25968;&#37327;&#65292;&#22914;&#26524;&#36229;&#36807;&#36825;&#20010;&#25968;&#23383;&#65292;TIME_WAIT&#22871;&#25509;&#23383;&#23558;&#31435;&#21051;&#34987;&#28165;&#38500;&#24182;&#25171;&#21360;&#35686;&#21578;&#20449;&#24687;&#12290;</span>
-&#40664;&#35748;&#20026;180000&#65292;&#25913;&#20026;5000&#12290;&#23545;&#20110;Apache&#12289;Nginx&#31561;&#26381;&#21153;&#22120;&#65292;&#19978;&#20960;&#34892;&#30340;&#21442;&#25968;&#21487;&#20197;&#24456;&#22909;&#22320;&#20943;&#23569;TIME_WAIT&#22871;&#25509;&#23383;&#25968;&#37327;&#65292;&#20294;&#26159;&#23545;&#20110; Squid&#65292;&#25928;&#26524;&#21364;&#19981;&#22823;&#12290;&#27492;&#39033;&#21442;&#25968;&#21487;&#20197;&#25511;&#21046;TIME_WAIT&#22871;&#25509;&#23383;&#30340;&#26368;&#22823;&#25968;&#37327;&#65292;&#36991;&#20813;Squid&#26381;&#21153;&#22120;&#34987;&#22823;&#37327;&#30340;TIME_WAIT&#22871;&#25509;&#23383;&#25302;&#27515;&#12290;
+<span class="org-comment-delimiter">#</span><span class="org-comment">&#34920;&#31034;&#24403;keepalive&#36215;&#29992;&#30340;&#26102;&#20505;&#65292;TCP&#21457;&#36865;keepalive&#28040;&#24687;&#30340;&#39057;&#24230;&#12290;&#32570;&#30465;&#26159;2&#23567;&#26102;&#65292;&#25913;&#20026;20&#20998;&#38047;&#12290;
+</span><span class="org-variable-name">net.ipv4.ip_local_port_range</span> = <span class="org-highlight-numbers-number">1024</span> <span class="org-highlight-numbers-number">65000</span>
+<span class="org-comment-delimiter">#</span><span class="org-comment">&#34920;&#31034;&#29992;&#20110;&#21521;&#22806;&#36830;&#25509;&#30340;&#31471;&#21475;&#33539;&#22260;&#12290;&#32570;&#30465;&#24773;&#20917;&#19979;&#24456;&#23567;&#65306;32768&#21040;61000&#65292;&#25913;&#20026;1024&#21040;65000&#12290;
+</span><span class="org-variable-name">net.ipv4.tcp_max_syn_backlog</span> = <span class="org-highlight-numbers-number">8192</span>
+<span class="org-comment-delimiter">#</span><span class="org-comment">&#34920;&#31034;SYN&#38431;&#21015;&#30340;&#38271;&#24230;&#65292;&#40664;&#35748;&#20026;1024&#65292;&#21152;&#22823;&#38431;&#21015;&#38271;&#24230;&#20026;8192&#65292;&#21487;&#20197;&#23481;&#32435;&#26356;&#22810;&#31561;&#24453;&#36830;&#25509;&#30340;&#32593;&#32476;&#36830;&#25509;&#25968;&#12290;
+</span><span class="org-variable-name">net.ipv4.tcp_max_tw_buckets</span> = <span class="org-highlight-numbers-number">5000</span>
+<span class="org-comment-delimiter">#</span><span class="org-comment">&#34920;&#31034;&#31995;&#32479;&#21516;&#26102;&#20445;&#25345;TIME_WAIT&#22871;&#25509;&#23383;&#30340;&#26368;&#22823;&#25968;&#37327;&#65292;&#22914;&#26524;&#36229;&#36807;&#36825;&#20010;&#25968;&#23383;&#65292;TIME_WAIT&#22871;&#25509;&#23383;&#23558;&#31435;&#21051;&#34987;&#28165;&#38500;&#24182;&#25171;&#21360;&#35686;&#21578;&#20449;&#24687;&#12290;
+</span>&#40664;&#35748;&#20026;180000&#65292;&#25913;&#20026;5000&#12290;&#23545;&#20110;Apache&#12289;Nginx&#31561;&#26381;&#21153;&#22120;&#65292;&#19978;&#20960;&#34892;&#30340;&#21442;&#25968;&#21487;&#20197;&#24456;&#22909;&#22320;&#20943;&#23569;TIME_WAIT&#22871;&#25509;&#23383;&#25968;&#37327;&#65292;&#20294;&#26159;&#23545;&#20110; Squid&#65292;&#25928;&#26524;&#21364;&#19981;&#22823;&#12290;&#27492;&#39033;&#21442;&#25968;&#21487;&#20197;&#25511;&#21046;TIME_WAIT&#22871;&#25509;&#23383;&#30340;&#26368;&#22823;&#25968;&#37327;&#65292;&#36991;&#20813;Squid&#26381;&#21153;&#22120;&#34987;&#22823;&#37327;&#30340;TIME_WAIT&#22871;&#25509;&#23383;&#25302;&#27515;&#12290;
 </code></pre>
 <p>服务器端允许 time_wait 状态的 socket 被重用
 缩减 time_wait 时间，设置为 1 MSL(即，2 mins)
@@ -397,13 +397,13 @@ client 发送 fin  server 回应 ack   就会进入 close wait
 <span class="org-rainbow-delimiters-depth-1">}</span>
 
 <span class="org-type">int</span> <span class="org-function-name">main</span><span class="org-rainbow-delimiters-depth-1">()</span> <span class="org-rainbow-delimiters-depth-1">{</span>
-    <span class="org-comment-delimiter">// </span><span class="org-comment">&#26500;&#24314;&#19968;&#20010;&#26377;&#29615;&#30340;&#38142;&#34920;&#31034;&#20363;</span>
-    <span class="org-type">ListNode</span> *<span class="org-variable-name">head</span> = <span class="org-keyword">new</span> <span class="org-type">ListNode</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
+    <span class="org-comment-delimiter">// </span><span class="org-comment">&#26500;&#24314;&#19968;&#20010;&#26377;&#29615;&#30340;&#38142;&#34920;&#31034;&#20363;
+</span>    <span class="org-type">ListNode</span> *<span class="org-variable-name">head</span> = <span class="org-keyword">new</span> <span class="org-type">ListNode</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-highlight-numbers-number">1</span><span class="org-rainbow-delimiters-depth-2">)</span>;
     head-&gt;next = <span class="org-keyword">new</span> <span class="org-type">ListNode</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-highlight-numbers-number">2</span><span class="org-rainbow-delimiters-depth-2">)</span>;
     head-&gt;next-&gt;next = <span class="org-keyword">new</span> <span class="org-type">ListNode</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-highlight-numbers-number">3</span><span class="org-rainbow-delimiters-depth-2">)</span>;
     head-&gt;next-&gt;next-&gt;next = <span class="org-keyword">new</span> <span class="org-type">ListNode</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-highlight-numbers-number">4</span><span class="org-rainbow-delimiters-depth-2">)</span>;
-    head-&gt;next-&gt;next-&gt;next-&gt;next = head; <span class="org-comment-delimiter">// </span><span class="org-comment">&#23614;&#33410;&#28857;&#25351;&#21521;&#22836;&#33410;&#28857;&#65292;&#24418;&#25104;&#29615;</span>
-
+    head-&gt;next-&gt;next-&gt;next-&gt;next = head; <span class="org-comment-delimiter">// </span><span class="org-comment">&#23614;&#33410;&#28857;&#25351;&#21521;&#22836;&#33410;&#28857;&#65292;&#24418;&#25104;&#29615;
+</span>
     <span class="org-constant">std</span>::cout &lt;&lt; <span class="org-string">"The linked list has cycle? "</span> &lt;&lt; <span class="org-rainbow-delimiters-depth-2">(</span>hasCycle<span class="org-rainbow-delimiters-depth-3">(</span>head<span class="org-rainbow-delimiters-depth-3">)</span> ? <span class="org-string">"Yes"</span> : <span class="org-string">"No"</span><span class="org-rainbow-delimiters-depth-2">)</span> &lt;&lt; <span class="org-constant">std</span>::endl;
 
     <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>;
@@ -660,44 +660,44 @@ const 可以定义任何类型的常量，包括基本类型、类对象和指�
 <span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">memory</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
 <span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">string</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#22522;&#31867;&#65306;&#24618;&#29289;</span>
-<span class="org-keyword">class</span> <span class="org-type">Monster</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#22522;&#31867;&#65306;&#24618;&#29289;
+</span><span class="org-keyword">class</span> <span class="org-type">Monster</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-keyword">virtual</span> <span class="org-type">void</span> <span class="org-function-name">attack</span><span class="org-rainbow-delimiters-depth-2">()</span> = <span class="org-highlight-numbers-number">0</span>;
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#24618;&#29289;&#31867;&#65306;&#29436;</span>
-<span class="org-keyword">class</span> <span class="org-type">Wolf</span> : <span class="org-keyword">public</span> <span class="org-type">Monster</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#24618;&#29289;&#31867;&#65306;&#29436;
+</span><span class="org-keyword">class</span> <span class="org-type">Wolf</span> : <span class="org-keyword">public</span> <span class="org-type">Monster</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-type">void</span> <span class="org-function-name">attack</span><span class="org-rainbow-delimiters-depth-2">()</span> <span class="org-keyword">override</span> <span class="org-rainbow-delimiters-depth-2">{</span>
         <span class="org-constant">std</span>::cout &lt;&lt; <span class="org-string">"Wolf attacks with claws!"</span> &lt;&lt; <span class="org-constant">std</span>::endl;
     <span class="org-rainbow-delimiters-depth-2">}</span>
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#24618;&#29289;&#31867;&#65306;&#24040;&#39764;</span>
-<span class="org-keyword">class</span> <span class="org-type">Troll</span> : <span class="org-keyword">public</span> <span class="org-type">Monster</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#24618;&#29289;&#31867;&#65306;&#24040;&#39764;
+</span><span class="org-keyword">class</span> <span class="org-type">Troll</span> : <span class="org-keyword">public</span> <span class="org-type">Monster</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-type">void</span> <span class="org-function-name">attack</span><span class="org-rainbow-delimiters-depth-2">()</span> <span class="org-keyword">override</span> <span class="org-rainbow-delimiters-depth-2">{</span>
         <span class="org-constant">std</span>::cout &lt;&lt; <span class="org-string">"Troll attacks with club!"</span> &lt;&lt; <span class="org-constant">std</span>::endl;
     <span class="org-rainbow-delimiters-depth-2">}</span>
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#24037;&#21378;&#25509;&#21475;&#65306;&#24618;&#29289;&#24037;&#21378;</span>
-<span class="org-keyword">class</span> <span class="org-type">MonsterFactory</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#24037;&#21378;&#25509;&#21475;&#65306;&#24618;&#29289;&#24037;&#21378;
+</span><span class="org-keyword">class</span> <span class="org-type">MonsterFactory</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-keyword">virtual</span> <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">Monster</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-function-name">createMonster</span><span class="org-rainbow-delimiters-depth-2">()</span> = <span class="org-highlight-numbers-number">0</span>;
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#24037;&#21378;&#31867;&#65306;&#29436;&#24037;&#21378;</span>
-<span class="org-keyword">class</span> <span class="org-type">WolfFactory</span> : <span class="org-keyword">public</span> <span class="org-type">MonsterFactory</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#24037;&#21378;&#31867;&#65306;&#29436;&#24037;&#21378;
+</span><span class="org-keyword">class</span> <span class="org-type">WolfFactory</span> : <span class="org-keyword">public</span> <span class="org-type">MonsterFactory</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">Monster</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-function-name">createMonster</span><span class="org-rainbow-delimiters-depth-2">()</span> <span class="org-keyword">override</span> <span class="org-rainbow-delimiters-depth-2">{</span>
         <span class="org-keyword">return</span> <span class="org-constant">std</span>::make_unique<span class="org-rainbow-delimiters-depth-3">&lt;</span><span class="org-type">Wolf</span><span class="org-rainbow-delimiters-depth-3">&gt;()</span>;
     <span class="org-rainbow-delimiters-depth-2">}</span>
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#24037;&#21378;&#31867;&#65306;&#24040;&#39764;&#24037;&#21378;</span>
-<span class="org-keyword">class</span> <span class="org-type">TrollFactory</span> : <span class="org-keyword">public</span> <span class="org-type">MonsterFactory</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#24037;&#21378;&#31867;&#65306;&#24040;&#39764;&#24037;&#21378;
+</span><span class="org-keyword">class</span> <span class="org-type">TrollFactory</span> : <span class="org-keyword">public</span> <span class="org-type">MonsterFactory</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">Monster</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-function-name">createMonster</span><span class="org-rainbow-delimiters-depth-2">()</span> <span class="org-keyword">override</span> <span class="org-rainbow-delimiters-depth-2">{</span>
         <span class="org-keyword">return</span> <span class="org-constant">std</span>::make_unique<span class="org-rainbow-delimiters-depth-3">&lt;</span><span class="org-type">Troll</span><span class="org-rainbow-delimiters-depth-3">&gt;()</span>;
@@ -705,19 +705,19 @@ const 可以定义任何类型的常量，包括基本类型、类对象和指�
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
 <span class="org-type">int</span> <span class="org-function-name">main</span><span class="org-rainbow-delimiters-depth-1">()</span> <span class="org-rainbow-delimiters-depth-1">{</span>
-    <span class="org-comment-delimiter">// </span><span class="org-comment">&#21019;&#24314;&#29436;&#24037;&#21378;</span>
-    <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">MonsterFactory</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-variable-name">wolfFactory</span> = <span class="org-constant">std</span>::make_unique<span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">WolfFactory</span><span class="org-rainbow-delimiters-depth-2">&gt;()</span>;
-    <span class="org-comment-delimiter">// </span><span class="org-comment">&#20351;&#29992;&#29436;&#24037;&#21378;&#21019;&#24314;&#29436;&#24618;&#29289;</span>
-    <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">Monster</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-variable-name">wolf</span> = wolfFactory-&gt;createMonster<span class="org-rainbow-delimiters-depth-2">()</span>;
-    <span class="org-comment-delimiter">// </span><span class="org-comment">&#29436;&#24618;&#29289;&#25915;&#20987;</span>
-    wolf-&gt;attack<span class="org-rainbow-delimiters-depth-2">()</span>;
+    <span class="org-comment-delimiter">// </span><span class="org-comment">&#21019;&#24314;&#29436;&#24037;&#21378;
+</span>    <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">MonsterFactory</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-variable-name">wolfFactory</span> = <span class="org-constant">std</span>::make_unique<span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">WolfFactory</span><span class="org-rainbow-delimiters-depth-2">&gt;()</span>;
+    <span class="org-comment-delimiter">// </span><span class="org-comment">&#20351;&#29992;&#29436;&#24037;&#21378;&#21019;&#24314;&#29436;&#24618;&#29289;
+</span>    <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">Monster</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-variable-name">wolf</span> = wolfFactory-&gt;createMonster<span class="org-rainbow-delimiters-depth-2">()</span>;
+    <span class="org-comment-delimiter">// </span><span class="org-comment">&#29436;&#24618;&#29289;&#25915;&#20987;
+</span>    wolf-&gt;attack<span class="org-rainbow-delimiters-depth-2">()</span>;
 
-    <span class="org-comment-delimiter">// </span><span class="org-comment">&#21019;&#24314;&#24040;&#39764;&#24037;&#21378;</span>
-    <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">MonsterFactory</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-variable-name">trollFactory</span> = <span class="org-constant">std</span>::make_unique<span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">TrollFactory</span><span class="org-rainbow-delimiters-depth-2">&gt;()</span>;
-    <span class="org-comment-delimiter">// </span><span class="org-comment">&#20351;&#29992;&#24040;&#39764;&#24037;&#21378;&#21019;&#24314;&#24040;&#39764;&#24618;&#29289;</span>
-    <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">Monster</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-variable-name">troll</span> = trollFactory-&gt;createMonster<span class="org-rainbow-delimiters-depth-2">()</span>;
-    <span class="org-comment-delimiter">// </span><span class="org-comment">&#24040;&#39764;&#24618;&#29289;&#25915;&#20987;</span>
-    troll-&gt;attack<span class="org-rainbow-delimiters-depth-2">()</span>;
+    <span class="org-comment-delimiter">// </span><span class="org-comment">&#21019;&#24314;&#24040;&#39764;&#24037;&#21378;
+</span>    <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">MonsterFactory</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-variable-name">trollFactory</span> = <span class="org-constant">std</span>::make_unique<span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">TrollFactory</span><span class="org-rainbow-delimiters-depth-2">&gt;()</span>;
+    <span class="org-comment-delimiter">// </span><span class="org-comment">&#20351;&#29992;&#24040;&#39764;&#24037;&#21378;&#21019;&#24314;&#24040;&#39764;&#24618;&#29289;
+</span>    <span class="org-constant">std</span>::<span class="org-type">unique_ptr</span><span class="org-rainbow-delimiters-depth-2">&lt;</span><span class="org-type">Monster</span><span class="org-rainbow-delimiters-depth-2">&gt;</span> <span class="org-variable-name">troll</span> = trollFactory-&gt;createMonster<span class="org-rainbow-delimiters-depth-2">()</span>;
+    <span class="org-comment-delimiter">// </span><span class="org-comment">&#24040;&#39764;&#24618;&#29289;&#25915;&#20987;
+</span>    troll-&gt;attack<span class="org-rainbow-delimiters-depth-2">()</span>;
 
     <span class="org-keyword">return</span> <span class="org-highlight-numbers-number">0</span>;
 <span class="org-rainbow-delimiters-depth-1">}</span>
@@ -725,18 +725,18 @@ const 可以定义任何类型的常量，包括基本类型、类对象和指�
 <h3>访问者模式</h3><pre><code class="c++"><span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">iostream</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
 <span class="org-preprocessor">#include</span> <span class="org-string"><span class="org-rainbow-delimiters-depth-1">&lt;</span></span><span class="org-string">vector</span><span class="org-string"><span class="org-rainbow-delimiters-depth-1">&gt;</span></span>
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#21069;&#21521;&#22768;&#26126;&#34987;&#35775;&#38382;&#20803;&#32032;&#31867;</span>
-<span class="org-keyword">class</span> <span class="org-type">ElementB</span>;
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#21069;&#21521;&#22768;&#26126;&#34987;&#35775;&#38382;&#20803;&#32032;&#31867;
+</span><span class="org-keyword">class</span> <span class="org-type">ElementB</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#35775;&#38382;&#32773;&#25509;&#21475;</span>
-<span class="org-keyword">class</span> <span class="org-type">Visitor</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#35775;&#38382;&#32773;&#25509;&#21475;
+</span><span class="org-keyword">class</span> <span class="org-type">Visitor</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-keyword">virtual</span> <span class="org-type">void</span> <span class="org-function-name">visit</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-type">ElementA</span>&amp; <span class="org-variable-name">element</span><span class="org-rainbow-delimiters-depth-2">)</span> = <span class="org-highlight-numbers-number">0</span>;
     <span class="org-keyword">virtual</span> <span class="org-type">void</span> <span class="org-function-name">visit</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-type">ElementB</span>&amp; <span class="org-variable-name">element</span><span class="org-rainbow-delimiters-depth-2">)</span> = <span class="org-highlight-numbers-number">0</span>;
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#35775;&#38382;&#32773;&#31867;&#65306;&#25171;&#21360;&#35775;&#38382;&#32773;</span>
-<span class="org-keyword">class</span> <span class="org-type">PrintVisitor</span> : <span class="org-keyword">public</span> <span class="org-type">Visitor</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#35775;&#38382;&#32773;&#31867;&#65306;&#25171;&#21360;&#35775;&#38382;&#32773;
+</span><span class="org-keyword">class</span> <span class="org-type">PrintVisitor</span> : <span class="org-keyword">public</span> <span class="org-type">Visitor</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-type">void</span> <span class="org-function-name">visit</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-type">ElementA</span>&amp; <span class="org-variable-name">element</span><span class="org-rainbow-delimiters-depth-2">)</span> <span class="org-keyword">override</span> <span class="org-rainbow-delimiters-depth-2">{</span>
         <span class="org-constant">std</span>::cout &lt;&lt; <span class="org-string">"Printing ElementA"</span> &lt;&lt; <span class="org-constant">std</span>::endl;
@@ -747,8 +747,8 @@ const 可以定义任何类型的常量，包括基本类型、类对象和指�
     <span class="org-rainbow-delimiters-depth-2">}</span>
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#35775;&#38382;&#32773;&#31867;&#65306;&#35745;&#31639;&#35775;&#38382;&#32773;</span>
-<span class="org-keyword">class</span> <span class="org-type">CalculationVisitor</span> : <span class="org-keyword">public</span> <span class="org-type">Visitor</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#35775;&#38382;&#32773;&#31867;&#65306;&#35745;&#31639;&#35775;&#38382;&#32773;
+</span><span class="org-keyword">class</span> <span class="org-type">CalculationVisitor</span> : <span class="org-keyword">public</span> <span class="org-type">Visitor</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-type">void</span> <span class="org-function-name">visit</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-type">ElementA</span>&amp; <span class="org-variable-name">element</span><span class="org-rainbow-delimiters-depth-2">)</span> <span class="org-keyword">override</span> <span class="org-rainbow-delimiters-depth-2">{</span>
         <span class="org-constant">std</span>::cout &lt;&lt; <span class="org-string">"Calculating something based on ElementA"</span> &lt;&lt; <span class="org-constant">std</span>::endl;
@@ -759,22 +759,22 @@ const 可以定义任何类型的常量，包括基本类型、类对象和指�
     <span class="org-rainbow-delimiters-depth-2">}</span>
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#34987;&#35775;&#38382;&#20803;&#32032;&#25509;&#21475;</span>
-<span class="org-keyword">class</span> <span class="org-type">Element</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#34987;&#35775;&#38382;&#20803;&#32032;&#25509;&#21475;
+</span><span class="org-keyword">class</span> <span class="org-type">Element</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-keyword">virtual</span> <span class="org-type">void</span> <span class="org-function-name">accept</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-type">Visitor</span>&amp; <span class="org-variable-name">visitor</span><span class="org-rainbow-delimiters-depth-2">)</span> = <span class="org-highlight-numbers-number">0</span>;
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#34987;&#35775;&#38382;&#20803;&#32032;&#31867;&#65306;&#20803;&#32032;A</span>
-<span class="org-keyword">class</span> <span class="org-type">ElementA</span> : <span class="org-keyword">public</span> <span class="org-type">Element</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#34987;&#35775;&#38382;&#20803;&#32032;&#31867;&#65306;&#20803;&#32032;A
+</span><span class="org-keyword">class</span> <span class="org-type">ElementA</span> : <span class="org-keyword">public</span> <span class="org-type">Element</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-type">void</span> <span class="org-function-name">accept</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-type">Visitor</span>&amp; <span class="org-variable-name">visitor</span><span class="org-rainbow-delimiters-depth-2">)</span> <span class="org-keyword">override</span> <span class="org-rainbow-delimiters-depth-2">{</span>
         visitor.visit<span class="org-rainbow-delimiters-depth-3">(</span>*<span class="org-keyword">this</span><span class="org-rainbow-delimiters-depth-3">)</span>;
     <span class="org-rainbow-delimiters-depth-2">}</span>
 <span class="org-rainbow-delimiters-depth-1">}</span>;
 
-<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#34987;&#35775;&#38382;&#20803;&#32032;&#31867;&#65306;&#20803;&#32032;B</span>
-<span class="org-keyword">class</span> <span class="org-type">ElementB</span> : <span class="org-keyword">public</span> <span class="org-type">Element</span> <span class="org-rainbow-delimiters-depth-1">{</span>
+<span class="org-comment-delimiter">// </span><span class="org-comment">&#20855;&#20307;&#34987;&#35775;&#38382;&#20803;&#32032;&#31867;&#65306;&#20803;&#32032;B
+</span><span class="org-keyword">class</span> <span class="org-type">ElementB</span> : <span class="org-keyword">public</span> <span class="org-type">Element</span> <span class="org-rainbow-delimiters-depth-1">{</span>
 <span class="org-keyword">public</span>:
     <span class="org-type">void</span> <span class="org-function-name">accept</span><span class="org-rainbow-delimiters-depth-2">(</span><span class="org-type">Visitor</span>&amp; <span class="org-variable-name">visitor</span><span class="org-rainbow-delimiters-depth-2">)</span> <span class="org-keyword">override</span> <span class="org-rainbow-delimiters-depth-2">{</span>
         visitor.visit<span class="org-rainbow-delimiters-depth-3">(</span>*<span class="org-keyword">this</span><span class="org-rainbow-delimiters-depth-3">)</span>;
